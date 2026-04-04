@@ -1,17 +1,14 @@
-function getApiUrl(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-  if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    if (host.includes('onrender.com')) {
-      return host.replace('frontend', 'backend').replace(/^/, 'https://');
-    }
-  }
-  return 'http://localhost:8000';
-}
-
-const API_URL = getApiUrl();
-
 class ApiClient {
+  private getApiUrl(): string {
+    if (typeof window !== 'undefined') {
+      const host = window.location.hostname;
+      if (host.includes('onrender.com')) {
+        return 'https://' + host.replace('frontend', 'backend');
+      }
+    }
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  }
+
   private getToken(): string | null {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('token');
@@ -28,7 +25,7 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetch(`${this.getApiUrl()}${path}`, {
       ...options,
       headers,
     });
