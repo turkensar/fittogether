@@ -1,4 +1,15 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+function getApiUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host.includes('onrender.com')) {
+      return host.replace('frontend', 'backend').replace(/^/, 'https://');
+    }
+  }
+  return 'http://localhost:8000';
+}
+
+const API_URL = getApiUrl();
 
 class ApiClient {
   private getToken(): string | null {
