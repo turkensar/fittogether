@@ -1,0 +1,42 @@
+databases:
+  - name: fittogether-db
+    plan: free
+    databaseName: fittogether
+    user: fittogether
+
+services:
+  - type: web
+    name: fittogether-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fittogether-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 1440
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+  - type: web
+    name: fittogether-frontend
+    runtime: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: NODE_VERSION
+        value: 20.11.0
