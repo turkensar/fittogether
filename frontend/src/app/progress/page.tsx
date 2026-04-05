@@ -9,6 +9,9 @@ import { WeightProgress, Badge as BadgeType } from '@/types';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import {
+  TrendingUp, Scale, Trophy, Award, Users, Loader2, Lock,
+} from 'lucide-react';
 
 export default function ProgressPage() {
   const { user, loading: authLoading } = useAuth();
@@ -44,7 +47,7 @@ export default function ProgressPage() {
   };
 
   if (authLoading || !myProgress) {
-    return <AppShell><div className="flex justify-center pt-20"><div className="animate-spin text-4xl">💫</div></div></AppShell>;
+    return <AppShell><div className="flex justify-center pt-20"><Loader2 className="w-8 h-8 animate-spin text-primary-500" /></div></AppShell>;
   }
 
   const chartData = myProgress.logs.map(l => ({
@@ -54,52 +57,55 @@ export default function ProgressPage() {
 
   return (
     <AppShell>
-      <div className="space-y-4 pb-4">
-        <h1 className="text-xl font-bold">📊 Progress</h1>
+      <div className="space-y-3 pb-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={20} className="text-primary-500" />
+          <h1 className="text-heading">Progress</h1>
+        </div>
 
         {/* Weight summary */}
         <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">My Weight Journey</h3>
-            <span className="text-sm text-primary-500 font-bold">{myProgress.percentage}%</span>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="section-title"><Scale size={16} /> My Weight Journey</h3>
+            <span className="text-caption text-primary-500 font-bold">{myProgress.percentage}%</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="text-center">
-              <p className="text-xs text-gray-500">Start</p>
-              <p className="font-bold">{myProgress.start_weight} kg</p>
+              <p className="stat-label">Start</p>
+              <p className="text-body font-bold">{myProgress.start_weight} kg</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500">Current</p>
-              <p className="font-bold text-primary-500">{myProgress.current_weight} kg</p>
+              <p className="stat-label">Current</p>
+              <p className="text-body font-bold text-primary-500">{myProgress.current_weight} kg</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500">Target</p>
-              <p className="font-bold text-green-500">{myProgress.target_weight} kg</p>
+              <p className="stat-label">Target</p>
+              <p className="text-body font-bold text-success">{myProgress.target_weight} kg</p>
             </div>
           </div>
 
-          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-4 mb-2">
-            <div className="bg-gradient-to-r from-primary-500 to-accent-500 h-4 rounded-full transition-all duration-700 flex items-center justify-end pr-1"
+          <div className="w-full bg-surface-100 dark:bg-surface-700 rounded-full h-3 mb-1.5">
+            <div className="bg-gradient-to-r from-primary-500 to-accent-500 h-3 rounded-full transition-all duration-700 flex items-center justify-end pr-1"
               style={{ width: `${Math.min(100, myProgress.percentage)}%` }}>
-              {myProgress.percentage > 10 && <span className="text-[9px] text-white font-bold">{myProgress.lost}kg</span>}
+              {myProgress.percentage > 15 && <span className="text-[8px] text-white font-bold">{myProgress.lost}kg</span>}
             </div>
           </div>
-          <p className="text-xs text-gray-500 text-center">Lost {myProgress.lost} kg so far!</p>
+          <p className="text-micro text-surface-400 text-center">Lost {myProgress.lost} kg so far!</p>
         </div>
 
         {/* Chart */}
         {chartData.length > 1 && (
           <div className="card">
-            <h3 className="font-semibold mb-3">Weight Over Time</h3>
+            <h3 className="section-title mb-3">Weight Over Time</h3>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} domain={['dataMin - 2', 'dataMax + 2']} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="weight" stroke="#6C63FF" strokeWidth={2} dot={{ fill: '#6C63FF', r: 3 }} />
+                  <Line type="monotone" dataKey="weight" stroke="#7c5cfc" strokeWidth={2} dot={{ fill: '#7c5cfc', r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -108,32 +114,32 @@ export default function ProgressPage() {
 
         {/* Log weight */}
         <div className="card">
-          <h3 className="font-semibold mb-3">Log Weight</h3>
+          <h3 className="section-title mb-3"><Scale size={16} /> Log Weight</h3>
           <form onSubmit={logWeight} className="flex gap-2">
             <input type="number" step="0.1" className="input-field flex-1" placeholder="Weight in kg"
               value={weight} onChange={e => setWeight(e.target.value)} required />
             <button type="submit" className="btn-primary px-6" disabled={logging}>
-              {logging ? '...' : 'Log'}
+              {logging ? <Loader2 size={16} className="animate-spin" /> : 'Log'}
             </button>
           </form>
         </div>
 
         {/* Partner progress */}
         {partnerProgress && (
-          <div className="card bg-gradient-to-r from-accent-50 to-primary-50 dark:from-accent-900/10 dark:to-primary-900/10">
-            <h3 className="font-semibold mb-2">Partner: {partnerProgress.name}</h3>
+          <div className="card bg-accent-50/50 dark:bg-accent-900/10 border-accent-100 dark:border-accent-900/30">
+            <h3 className="section-title mb-2"><Users size={16} /> {partnerProgress.name}</h3>
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center">
-                <p className="text-xs text-gray-500">Start</p>
-                <p className="font-bold text-sm">{partnerProgress.start_weight} kg</p>
+                <p className="stat-label">Start</p>
+                <p className="text-body font-bold">{partnerProgress.start_weight} kg</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-gray-500">Current</p>
-                <p className="font-bold text-sm text-accent-500">{partnerProgress.current_weight} kg</p>
+                <p className="stat-label">Current</p>
+                <p className="text-body font-bold text-accent-500">{partnerProgress.current_weight} kg</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-gray-500">Lost</p>
-                <p className="font-bold text-sm text-green-500">{partnerProgress.lost} kg</p>
+                <p className="stat-label">Lost</p>
+                <p className="text-body font-bold text-success">{partnerProgress.lost} kg</p>
               </div>
             </div>
           </div>
@@ -142,19 +148,21 @@ export default function ProgressPage() {
         {/* Couple leaderboard */}
         {leaderboard && leaderboard.partner_name && (
           <div className="card">
-            <h3 className="font-semibold mb-3">🏆 Couple Leaderboard</h3>
+            <h3 className="section-title mb-3"><Trophy size={16} /> Couple Leaderboard</h3>
             <div className="space-y-2">
               {[
-                { name: user?.name || 'Me', score: leaderboard.my_score, emoji: user?.avatar_emoji },
-                { name: leaderboard.partner_name, score: leaderboard.partner_score, emoji: '💕' },
+                { name: user?.name || 'Me', score: leaderboard.my_score },
+                { name: leaderboard.partner_name, score: leaderboard.partner_score },
               ]
                 .sort((a, b) => b.score - a.score)
                 .map((entry, i) => (
-                  <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${i === 0 ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-gray-50 dark:bg-gray-700'}`}>
-                    <span className="text-lg font-bold text-gray-300">{i + 1}</span>
-                    <span className="text-xl">{entry.emoji}</span>
-                    <span className="flex-1 font-medium text-sm">{entry.name}</span>
-                    <span className="font-bold text-primary-500">{entry.score} pts</span>
+                  <div key={i} className={`flex items-center gap-3 p-3 rounded-btn ${i === 0 ? 'bg-yellow-50 dark:bg-yellow-900/10' : 'bg-surface-50 dark:bg-surface-700'}`}>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-caption font-bold
+                      ${i === 0 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600' : 'bg-surface-200 dark:bg-surface-600 text-surface-500'}`}>
+                      {i + 1}
+                    </div>
+                    <span className="flex-1 text-body font-medium">{entry.name}</span>
+                    <span className="text-body font-bold text-primary-500">{entry.score} pts</span>
                   </div>
                 ))}
             </div>
@@ -163,14 +171,17 @@ export default function ProgressPage() {
 
         {/* Badges */}
         <div className="card">
-          <h3 className="font-semibold mb-3">🎖️ Badges</h3>
-          <div className="grid grid-cols-3 gap-3">
+          <h3 className="section-title mb-3"><Award size={16} /> Badges</h3>
+          <div className="grid grid-cols-3 gap-2">
             {badges.map(badge => (
               <div key={badge.id}
-                className={`text-center p-3 rounded-xl ${badge.earned_at ? 'bg-primary-50 dark:bg-primary-900/20' : 'bg-gray-50 dark:bg-gray-700 opacity-50'}`}>
-                <div className="text-2xl mb-1">{badge.emoji}</div>
-                <p className="text-[10px] font-medium">{badge.name}</p>
-                {badge.earned_at && <p className="text-[9px] text-green-500">Earned!</p>}
+                className={`text-center p-3 rounded-btn relative ${badge.earned_at
+                  ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800'
+                  : 'bg-surface-50 dark:bg-surface-700 opacity-40'}`}>
+                {!badge.earned_at && <Lock size={10} className="absolute top-1.5 right-1.5 text-surface-400" />}
+                <div className="text-xl mb-1">{badge.emoji}</div>
+                <p className="text-micro font-medium">{badge.name}</p>
+                {badge.earned_at && <p className="text-micro text-success mt-0.5">Earned!</p>}
               </div>
             ))}
           </div>

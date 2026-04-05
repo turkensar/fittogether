@@ -6,18 +6,35 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import AppShell from '@/components/ui/AppShell';
 import { DashboardSummary, Challenge, PairingStatus } from '@/types';
+import {
+  Flame, Trophy, CalendarOff, Droplets, Target, ChevronDown, ChevronUp,
+  AlertTriangle, Plus, Users, Loader2,
+} from 'lucide-react';
 
-function ProgressRing({ percent, color, size = 80 }: { percent: number; color: string; size?: number }) {
-  const r = (size - 8) / 2;
+function ProgressRing({ percent, color, size = 100, strokeWidth = 8 }: { percent: number; color: string; size?: number; strokeWidth?: number }) {
+  const r = (size - strokeWidth) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (Math.min(percent, 100) / 100) * circ;
 
   return (
     <svg width={size} height={size} className="-rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth="6" className="text-gray-100 dark:text-gray-700" />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="6"
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-surface-100 dark:text-surface-700" />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth}
         strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-700" />
     </svg>
+  );
+}
+
+function MacroBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-micro text-surface-400 w-8">{label}</span>
+      <div className="flex-1 bg-surface-100 dark:bg-surface-700 rounded-full h-1.5">
+        <div className="h-1.5 rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+      <span className="text-micro text-surface-500 w-8 text-right">{value}g</span>
+    </div>
   );
 }
 
@@ -31,12 +48,10 @@ export default function DashboardPage() {
   const [cheatDays, setCheatDays] = useState({ my_cheat_days: 0, partner_cheat_days: 0, max_per_week: 2 });
   const [pairing, setPairing] = useState<PairingStatus | null>(null);
   const [dietBreakResult, setDietBreakResult] = useState<string | null>(null);
+  const [challengesOpen, setChallengesOpen] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-      return;
-    }
+    if (!authLoading && !user) { router.push('/login'); return; }
     if (user) {
       api.get<DashboardSummary>('/api/gamification/dashboard-summary').then(setSummary);
       api.get<Challenge[]>('/api/challenges/daily').then(setChallenges);
@@ -70,156 +85,190 @@ export default function DashboardPage() {
   };
 
   if (authLoading || !summary) {
-    return <AppShell><div className="flex justify-center pt-20"><div className="animate-spin text-4xl">💫</div></div></AppShell>;
+    return <AppShell><div className="flex justify-center pt-20"><Loader2 className="w-8 h-8 animate-spin text-primary-500" /></div></AppShell>;
   }
 
   const myPct = summary.my_goal > 0 ? (summary.my_calories / summary.my_goal) * 100 : 0;
   const partnerPct = summary.partner_goal > 0 ? (summary.partner_calories / summary.partner_goal) * 100 : 0;
+  const waterPct = Math.min(100, (water.my_water_ml / 2000) * 100);
 
   return (
     <AppShell>
-      <div className="space-y-4 pb-4">
+      <div className="space-y-3 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">Hey {user?.name}! 👋</h1>
-            <p className="text-sm text-gray-500">Let's make today count</p>
+            <h1 className="text-heading">Hey {user?.name}!</h1>
+            <p className="text-caption text-surface-400">Let's make today count</p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{user?.avatar_emoji}</span>
-            {pairing?.paired && <span className="text-2xl">{pairing.partner?.avatar_emoji}</span>}
-          </div>
-        </div>
-
-        {/* Partner status */}
-        {!pairing?.paired && (
-          <div className="card bg-gradient-to-r from-accent-50 to-primary-50 dark:from-accent-900/20 dark:to-primary-900/20 p-4">
-            <p className="text-sm font-medium">No partner yet!</p>
-            <button onClick={() => router.push('/pairing')} className="text-primary-500 text-sm font-medium mt-1">
-              Find your partner →
-            </button>
-          </div>
-        )}
-
-        {/* Calorie cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="card flex flex-col items-center py-5">
-            <div className="relative mb-2">
-              <ProgressRing percent={myPct} color="#6C63FF" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-bold">{Math.round(myPct)}%</span>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500">My Calories</p>
-            <p className="font-bold">{summary.my_calories} <span className="text-xs text-gray-400">/ {summary.my_goal}</span></p>
-            <p className="text-xs text-primary-500">{summary.my_remaining} remaining</p>
-          </div>
-
           {pairing?.paired && (
-            <div className="card flex flex-col items-center py-5">
-              <div className="relative mb-2">
-                <ProgressRing percent={partnerPct} color="#FF6B8A" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold">{Math.round(partnerPct)}%</span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">{summary.partner_name}</p>
-              <p className="font-bold">{summary.partner_calories} <span className="text-xs text-gray-400">/ {summary.partner_goal}</span></p>
-              <p className="text-xs text-accent-500">{summary.partner_remaining} remaining</p>
+            <div className="flex items-center gap-1.5 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-badge">
+              <Users size={14} className="text-primary-500" />
+              <span className="text-micro text-primary-600 dark:text-primary-300">{pairing.partner?.name}</span>
             </div>
           )}
         </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="card text-center py-3">
-            <div className="text-2xl mb-1">🔥</div>
-            <p className="text-lg font-bold">{streak.couple_streak}</p>
-            <p className="text-[10px] text-gray-500">Couple Streak</p>
+        {/* Partner CTA */}
+        {!pairing?.paired && (
+          <button onClick={() => router.push('/pairing')}
+            className="w-full card flex items-center gap-3 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/10 dark:to-accent-900/10 border-primary-100 dark:border-primary-800">
+            <Users size={18} className="text-primary-500" />
+            <span className="text-body font-medium text-primary-600 dark:text-primary-300">Find your partner to get started</span>
+          </button>
+        )}
+
+        {/* Main calorie tracker */}
+        <div className="card">
+          <div className="flex items-center gap-5">
+            {/* My progress ring */}
+            <div className="relative flex-shrink-0">
+              <ProgressRing percent={myPct} color="#7c5cfc" size={110} strokeWidth={10} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xl font-bold">{summary.my_calories}</span>
+                <span className="text-micro text-surface-400">/ {summary.my_goal}</span>
+              </div>
+            </div>
+
+            {/* Right side info */}
+            <div className="flex-1 space-y-2.5">
+              <div>
+                <p className="text-caption text-surface-400">Remaining</p>
+                <p className="text-lg font-bold text-primary-500">{summary.my_remaining} cal</p>
+              </div>
+              <div className="space-y-1.5">
+                <MacroBar label="P" value={0} max={100} color="#7c5cfc" />
+                <MacroBar label="C" value={0} max={100} color="#f59e0b" />
+                <MacroBar label="F" value={0} max={100} color="#ec4899" />
+              </div>
+            </div>
           </div>
-          <div className="card text-center py-3">
-            <div className="text-2xl mb-1">🏆</div>
-            <p className="text-lg font-bold">{summary.couple_score}</p>
-            <p className="text-[10px] text-gray-500">Couple Score</p>
-          </div>
-          <div className="card text-center py-3">
-            <div className="text-2xl mb-1">😈</div>
-            <p className="text-lg font-bold">{cheatDays.my_cheat_days}/{cheatDays.max_per_week}</p>
-            <p className="text-[10px] text-gray-500">Cheat Days</p>
-          </div>
+
+          {/* Partner mini bar */}
+          {pairing?.paired && (
+            <div className="mt-3 pt-3 border-t border-surface-100 dark:border-surface-700 flex items-center gap-3">
+              <div className="relative flex-shrink-0">
+                <ProgressRing percent={partnerPct} color="#ec4899" size={36} strokeWidth={4} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-[8px] font-bold">{Math.round(partnerPct)}%</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-caption font-medium">{summary.partner_name}</p>
+                <p className="text-micro text-surface-400">{summary.partner_calories} / {summary.partner_goal} cal</p>
+              </div>
+              <p className="text-caption text-accent-500 font-semibold">{summary.partner_remaining} left</p>
+            </div>
+          )}
         </div>
 
-        {/* Water tracking */}
+        {/* Water tracker - compact */}
         <div className="card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold">💧 Water Today</h3>
-            <span className="text-sm text-gray-500">{(water.my_water_ml / 1000).toFixed(1)}L / 2L</span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Droplets size={16} className="text-info" />
+              <span className="text-subheading">Water</span>
+            </div>
+            <span className="text-caption text-surface-400">{(water.my_water_ml / 1000).toFixed(1)}L / 2L</span>
           </div>
-          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 mb-3">
-            <div className="bg-blue-400 h-3 rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, (water.my_water_ml / 2000) * 100)}%` }} />
+          <div className="w-full bg-surface-100 dark:bg-surface-700 rounded-full h-2 mb-2.5">
+            <div className="bg-info h-2 rounded-full transition-all duration-500" style={{ width: `${waterPct}%` }} />
           </div>
           <div className="flex gap-2">
             {[250, 500, 750].map(ml => (
-              <button key={ml} onClick={() => addWater(ml)} className="btn-secondary text-xs flex-1 py-2">
-                +{ml}ml
+              <button key={ml} onClick={() => addWater(ml)} className="btn-secondary text-caption flex-1 py-1.5 px-2">
+                <Plus size={12} className="inline mr-0.5" />{ml}ml
               </button>
             ))}
           </div>
           {pairing?.paired && (
-            <p className="text-xs text-gray-400 mt-2">Partner: {(water.partner_water_ml / 1000).toFixed(1)}L</p>
+            <p className="text-micro text-surface-400 mt-2">Partner: {(water.partner_water_ml / 1000).toFixed(1)}L</p>
           )}
         </div>
 
-        {/* Daily challenges */}
-        <div className="card">
-          <h3 className="font-semibold mb-3">🎯 Today's Challenges</h3>
-          {challenges.map(ch => (
-            <div key={ch.id} className="flex items-center gap-3 py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
-              <span className="text-xl">{ch.emoji}</span>
-              <div className="flex-1">
-                <p className={`text-sm font-medium ${ch.completed ? 'line-through text-gray-400' : ''}`}>{ch.title}</p>
-                <p className="text-xs text-gray-400">{ch.description}</p>
-              </div>
-              {ch.completed ? (
-                <span className="text-green-500 text-sm">✓</span>
-              ) : (
-                <button onClick={() => completeChallenge(ch.id)} className="text-xs bg-primary-50 dark:bg-primary-900/30 text-primary-500 px-3 py-1 rounded-lg">
-                  Done
-                </button>
-              )}
-            </div>
-          ))}
+        {/* Stats row - compact */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="card text-center py-2.5 px-2">
+            <Flame size={16} className="mx-auto mb-1 text-orange-500" />
+            <p className="stat-value text-base">{streak.couple_streak}</p>
+            <p className="stat-label">Streak</p>
+          </div>
+          <div className="card text-center py-2.5 px-2">
+            <Trophy size={16} className="mx-auto mb-1 text-yellow-500" />
+            <p className="stat-value text-base">{summary.couple_score}</p>
+            <p className="stat-label">Score</p>
+          </div>
+          <div className="card text-center py-2.5 px-2">
+            <CalendarOff size={16} className="mx-auto mb-1 text-surface-400" />
+            <p className="stat-value text-base">{cheatDays.my_cheat_days}/{cheatDays.max_per_week}</p>
+            <p className="stat-label">Cheat</p>
+          </div>
         </div>
 
-        {/* Diet break button */}
-        <div className="card bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-red-600 dark:text-red-400">😅 I Broke the Diet</h3>
-              <p className="text-xs text-gray-500">Honest is good! Press if you slipped</p>
+        {/* Challenges - collapsible */}
+        <div className="card">
+          <button onClick={() => setChallengesOpen(o => !o)} className="w-full flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target size={16} className="text-primary-500" />
+              <span className="text-subheading">Today's Challenges</span>
+              <span className="text-micro bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 px-1.5 py-0.5 rounded-badge">
+                {challenges.filter(c => c.completed).length}/{challenges.length}
+              </span>
             </div>
-            <button onClick={breakDiet} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all active:scale-95">
+            {challengesOpen ? <ChevronUp size={16} className="text-surface-400" /> : <ChevronDown size={16} className="text-surface-400" />}
+          </button>
+          {challengesOpen && (
+            <div className="mt-3 space-y-2">
+              {challenges.map(ch => (
+                <div key={ch.id} className={`flex items-center gap-3 p-2.5 rounded-btn ${ch.completed ? 'bg-success/5' : 'bg-surface-50 dark:bg-surface-700'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0
+                    ${ch.completed ? 'bg-success/10 text-success' : 'bg-primary-50 dark:bg-primary-900/30 text-primary-500'}`}>
+                    {ch.completed ? '✓' : ch.points}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-body font-medium truncate ${ch.completed ? 'line-through text-surface-400' : ''}`}>{ch.title}</p>
+                    <p className="text-micro text-surface-400 truncate">{ch.description}</p>
+                  </div>
+                  {!ch.completed && (
+                    <button onClick={() => completeChallenge(ch.id)} className="btn-primary py-1 px-3 text-caption">
+                      Done
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Diet break - soft & small */}
+        <div className="card bg-orange-50/50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={14} className="text-orange-400" />
+              <div>
+                <p className="text-body font-medium text-orange-700 dark:text-orange-300">Slipped up?</p>
+                <p className="text-micro text-surface-400">It's okay, be honest</p>
+              </div>
+            </div>
+            <button onClick={breakDiet} className="bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-300 px-3 py-1.5 rounded-btn text-caption font-semibold transition-all active:scale-[0.97]">
               Confess
             </button>
           </div>
           {dietBreakResult && (
-            <div className="mt-3 p-3 bg-white dark:bg-gray-800 rounded-xl">
-              <p className="text-sm font-medium">Your fun punishment:</p>
-              <p className="text-sm text-accent-500 mt-1">{dietBreakResult}</p>
+            <div className="mt-2.5 p-2.5 bg-white dark:bg-surface-800 rounded-btn">
+              <p className="text-caption font-medium text-surface-500">Your fun challenge:</p>
+              <p className="text-body text-accent-600 dark:text-accent-400 mt-0.5">{dietBreakResult}</p>
             </div>
           )}
         </div>
 
-        {/* Quick actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => router.push('/meals')} className="btn-primary text-sm py-4">
-            🍽️ Log Meal
-          </button>
-          <button onClick={() => router.push('/chat')} className="btn-accent text-sm py-4">
-            💬 Chat
-          </button>
-        </div>
+        {/* FAB */}
+        <button
+          onClick={() => router.push('/meals')}
+          className="fixed bottom-20 right-4 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-fab flex items-center justify-center transition-all active:scale-90 z-40"
+        >
+          <Plus size={24} />
+        </button>
       </div>
     </AppShell>
   );
