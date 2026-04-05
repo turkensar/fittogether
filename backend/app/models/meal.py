@@ -31,6 +31,9 @@ class MealItem(Base):
     custom_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     quantity_g: Mapped[float] = mapped_column(Float, default=100)
     calories: Mapped[int] = mapped_column(Integer, nullable=False)
+    protein: Mapped[float] = mapped_column(Float, default=0)
+    carbs: Mapped[float] = mapped_column(Float, default=0)
+    fat: Mapped[float] = mapped_column(Float, default=0)
 
     meal = relationship("Meal", back_populates="items")
     food = relationship("Food")

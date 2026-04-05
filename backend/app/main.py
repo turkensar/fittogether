@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text, inspect
 
 from app.config import settings
 from app.database import engine, SessionLocal, Base
@@ -10,9 +11,21 @@ from app.routers import auth, pairing, meals, tracking, social, challenges, gami
 from app.seed.seed_data import seed_database
 
 
+def run_migrations(engine):
+    """Add new columns to existing tables if they don't exist."""
+    inspector = inspect(engine)
+    if "meal_items" in inspector.get_table_names():
+        columns = [c["name"] for c in inspector.get_columns("meal_items")]
+        with engine.begin() as conn:
+            for col in ["protein", "carbs", "fat"]:
+                if col not in columns:
+                    conn.execute(text(f"ALTER TABLE meal_items ADD COLUMN {col} FLOAT DEFAULT 0"))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    run_migrations(engine)
     db = SessionLocal()
     try:
         seed_database(db)

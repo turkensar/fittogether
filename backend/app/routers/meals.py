@@ -36,10 +36,22 @@ def create_meal(data: MealCreate, user: User = Depends(get_current_user), db: Se
     total = 0
     for item_data in data.items:
         cal = item_data.calories
-        if cal is None and item_data.food_id:
+        protein = item_data.protein or 0
+        carbs = item_data.carbs or 0
+        fat = item_data.fat or 0
+
+        if item_data.food_id:
             food = db.query(Food).filter(Food.id == item_data.food_id).first()
             if food:
-                cal = int(food.calories_per_100g * item_data.quantity_g / 100)
+                ratio = item_data.quantity_g / 100
+                if cal is None:
+                    cal = int(food.calories_per_100g * ratio)
+                if not item_data.protein:
+                    protein = round(food.protein_per_100g * ratio, 1)
+                if not item_data.carbs:
+                    carbs = round(food.carbs_per_100g * ratio, 1)
+                if not item_data.fat:
+                    fat = round(food.fat_per_100g * ratio, 1)
         if cal is None:
             cal = 0
 
@@ -48,6 +60,9 @@ def create_meal(data: MealCreate, user: User = Depends(get_current_user), db: Se
             custom_name=item_data.custom_name,
             quantity_g=item_data.quantity_g,
             calories=cal,
+            protein=protein,
+            carbs=carbs,
+            fat=fat,
         )
         meal.items.append(meal_item)
         total += cal

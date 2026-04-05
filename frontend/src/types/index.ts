@@ -45,6 +45,9 @@ export interface MealItem {
   custom_name: string | null;
   quantity_g: number;
   calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
 }
 
 export interface Meal {

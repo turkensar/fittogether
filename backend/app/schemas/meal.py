@@ -7,6 +7,9 @@ class MealItemCreate(BaseModel):
     custom_name: str | None = None
     quantity_g: float = 100
     calories: int | None = None
+    protein: float | None = None
+    carbs: float | None = None
+    fat: float | None = None
 
 
 class MealCreate(BaseModel):
@@ -22,6 +25,9 @@ class MealItemResponse(BaseModel):
     custom_name: str | None
     quantity_g: float
     calories: int
+    protein: float
+    carbs: float
+    fat: float
 
     class Config:
         from_attributes = True
