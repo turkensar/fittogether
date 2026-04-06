@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -142,3 +142,88 @@ def partner_comparison(user: User = Depends(get_current_user), db: Session = Dep
         "my_score": get_total_score(db, user.id),
         "partner_score": get_total_score(db, partner_id),
     }
+
+
+@router.get("/reminders")
+def daily_reminders(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Check today's activity and return relevant reminders."""
+    today = date.today()
+    now = datetime.utcnow()
+    hour = now.hour
+    reminders = []
+
+    # Water check
+    water_total = db.query(func.coalesce(func.sum(WaterLog.amount_ml), 0)).filter(
+        WaterLog.user_id == user.id, WaterLog.date == today
+    ).scalar()
+    if water_total < 2000:
+        remaining_l = round((2000 - water_total) / 1000, 1)
+        reminders.append({
+            "type": "water",
+            "icon": "droplets",
+            "title": "Su i\u00e7meyi unutma!",
+            "message": f"Bug\u00fcn {remaining_l}L daha su i\u00e7men gerekiyor.",
+            "priority": "medium" if water_total < 1000 else "low",
+        })
+
+    # Meal check
+    meal_count = db.query(Meal).filter(
+        Meal.user_id == user.id, func.date(Meal.created_at) == today
+    ).count()
+    total_cals = db.query(func.coalesce(func.sum(Meal.total_calories), 0)).filter(
+        Meal.user_id == user.id, func.date(Meal.created_at) == today
+    ).scalar()
+
+    if meal_count == 0:
+        reminders.append({
+            "type": "meal",
+            "icon": "utensils",
+            "title": "Bug\u00fcn hen\u00fcz \u00f6\u011f\u00fcn eklenmedi",
+            "message": "Sa\u011fl\u0131kl\u0131 bir kahvalt\u0131 ile g\u00fcne ba\u015fla!",
+            "priority": "high",
+        })
+    elif meal_count < 3 and hour >= 18:
+        reminders.append({
+            "type": "meal",
+            "icon": "utensils",
+            "title": "\u00d6\u011f\u00fcnlerini tamamla",
+            "message": f"Bug\u00fcn {meal_count} \u00f6\u011f\u00fcn kaydettin. Eksik \u00f6\u011f\u00fcnlerini girmeyi unutma!",
+            "priority": "medium",
+        })
+
+    # Challenge check
+    from app.models.challenge import DailyChallenge, ChallengeCompletion
+    import random
+    challenges = db.query(DailyChallenge).all()
+    if challenges:
+        random.seed(today.toordinal())
+        picked = random.sample(challenges, min(2, len(challenges)))
+        random.seed()
+        completed_ids = {
+            c.challenge_id for c in db.query(ChallengeCompletion).filter(
+                ChallengeCompletion.user_id == user.id,
+                ChallengeCompletion.date == today,
+            ).all()
+        }
+        pending = [c for c in picked if c.id not in completed_ids]
+        if pending:
+            reminders.append({
+                "type": "challenge",
+                "icon": "target",
+                "title": f"{len(pending)} challenge bekliyor",
+                "message": pending[0].title + (" ve daha fazlas\u0131..." if len(pending) > 1 else ""),
+                "priority": "low",
+            })
+
+    # Calorie check
+    if total_cals > 0 and total_cals > user.daily_calorie_goal:
+        over = total_cals - user.daily_calorie_goal
+        reminders.append({
+            "type": "calorie_warning",
+            "icon": "flame",
+            "title": "Kalori hedefini a\u015ft\u0131n!",
+            "message": f"Bug\u00fcn hedefinden {over} kcal fazla t\u00fckettin.",
+            "priority": "high",
+        })
+
+    return reminders

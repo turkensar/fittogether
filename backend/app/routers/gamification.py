@@ -8,6 +8,9 @@ from app.database import get_db
 from app.models.user import User
 from app.models.gamification import ScoreEvent, Badge, UserBadge
 from app.models.meal import Meal
+from app.models.water_log import WaterLog
+from app.models.weight_log import WeightLog
+from app.models.challenge import ChallengeCompletion
 from app.schemas.social import ScoreResponse, BadgeResponse
 from app.services.auth import get_current_user
 from app.services.gamification import get_total_score
@@ -155,3 +158,77 @@ def dashboard_summary(user: User = Depends(get_current_user), db: Session = Depe
         })
 
     return result
+
+
+@router.get("/weekly-report")
+def weekly_report(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Weekly summary: total calories, water, weight change, challenges completed."""
+    today = date.today()
+    week_start = today - timedelta(days=6)
+
+    # Total calories this week
+    total_calories = db.query(func.coalesce(func.sum(Meal.total_calories), 0)).filter(
+        Meal.user_id == user.id,
+        func.date(Meal.created_at) >= week_start,
+        func.date(Meal.created_at) <= today,
+    ).scalar()
+
+    avg_calories = round(total_calories / 7) if total_calories > 0 else 0
+
+    # Total water this week
+    total_water = db.query(func.coalesce(func.sum(WaterLog.amount_ml), 0)).filter(
+        WaterLog.user_id == user.id,
+        WaterLog.date >= week_start,
+        WaterLog.date <= today,
+    ).scalar()
+    avg_water = round(total_water / 7) if total_water > 0 else 0
+
+    # Weight change
+    weight_start = db.query(WeightLog).filter(
+        WeightLog.user_id == user.id,
+        func.date(WeightLog.logged_at) >= week_start,
+    ).order_by(WeightLog.logged_at.asc()).first()
+
+    weight_end = db.query(WeightLog).filter(
+        WeightLog.user_id == user.id,
+        func.date(WeightLog.logged_at) <= today,
+    ).order_by(WeightLog.logged_at.desc()).first()
+
+    weight_change = 0.0
+    if weight_start and weight_end:
+        weight_change = round(weight_end.weight - weight_start.weight, 1)
+
+    # Challenges completed this week
+    challenges_completed = db.query(ChallengeCompletion).filter(
+        ChallengeCompletion.user_id == user.id,
+        ChallengeCompletion.date >= week_start,
+        ChallengeCompletion.date <= today,
+    ).count()
+
+    # Points earned this week
+    points_earned = db.query(func.coalesce(func.sum(ScoreEvent.points), 0)).filter(
+        ScoreEvent.user_id == user.id,
+        func.date(ScoreEvent.created_at) >= week_start,
+        func.date(ScoreEvent.created_at) <= today,
+    ).scalar()
+
+    # Days with meal logs
+    active_days = db.query(func.date(Meal.created_at)).filter(
+        Meal.user_id == user.id,
+        func.date(Meal.created_at) >= week_start,
+        func.date(Meal.created_at) <= today,
+    ).distinct().count()
+
+    return {
+        "week_start": week_start.isoformat(),
+        "week_end": today.isoformat(),
+        "total_calories": total_calories,
+        "avg_calories": avg_calories,
+        "total_water_ml": total_water,
+        "avg_water_ml": avg_water,
+        "weight_change": weight_change,
+        "challenges_completed": challenges_completed,
+        "points_earned": points_earned,
+        "active_days": active_days,
+        "calorie_goal": user.daily_calorie_goal,
+    }
