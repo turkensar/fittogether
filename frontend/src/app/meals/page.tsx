@@ -369,12 +369,13 @@ export default function MealsPage() {
                       <div>
                         <label className="text-micro text-surface-400">Miktar (g)</label>
                         <input type="number" className="input-field text-body" value={item.quantity_g}
-                          onChange={e => updateItem(i, 'quantity_g', parseFloat(e.target.value))} />
+                          onChange={e => updateItem(i, 'quantity_g', parseFloat(e.target.value) || 0)} />
                       </div>
                       <div>
                         <label className="text-micro text-surface-400">Kalori</label>
-                        <input type="number" className="input-field text-body" value={item.calories || ''}
-                          onChange={e => updateItem(i, 'calories', parseInt(e.target.value) || 0)} />
+                        <input type="number" className="input-field text-body" value={item.calories || 0}
+                          readOnly={item.cal_per_100 > 0}
+                          onChange={e => item.cal_per_100 === 0 && updateItem(i, 'calories', parseInt(e.target.value) || 0)} />
                       </div>
                     </div>
                     {/* Macro display */}
@@ -382,22 +383,19 @@ export default function MealsPage() {
                       <div className="flex items-center gap-1 text-micro">
                         <Beef size={10} className="text-blue-500" />
                         <span className="text-surface-400">P:</span>
-                        <input type="number" step="0.1" className="w-14 bg-transparent text-body font-medium border-b border-surface-200 dark:border-surface-600 text-center"
-                          value={item.protein} onChange={e => updateItem(i, 'protein', parseFloat(e.target.value) || 0)} />
+                        <span className="w-14 text-body font-medium text-center">{item.protein}</span>
                         <span className="text-surface-400">g</span>
                       </div>
                       <div className="flex items-center gap-1 text-micro">
                         <Wheat size={10} className="text-amber-500" />
                         <span className="text-surface-400">K:</span>
-                        <input type="number" step="0.1" className="w-14 bg-transparent text-body font-medium border-b border-surface-200 dark:border-surface-600 text-center"
-                          value={item.carbs} onChange={e => updateItem(i, 'carbs', parseFloat(e.target.value) || 0)} />
+                        <span className="w-14 text-body font-medium text-center">{item.carbs}</span>
                         <span className="text-surface-400">g</span>
                       </div>
                       <div className="flex items-center gap-1 text-micro">
                         <Droplet size={10} className="text-rose-500" />
                         <span className="text-surface-400">Y:</span>
-                        <input type="number" step="0.1" className="w-14 bg-transparent text-body font-medium border-b border-surface-200 dark:border-surface-600 text-center"
-                          value={item.fat} onChange={e => updateItem(i, 'fat', parseFloat(e.target.value) || 0)} />
+                        <span className="w-14 text-body font-medium text-center">{item.fat}</span>
                         <span className="text-surface-400">g</span>
                       </div>
                     </div>
