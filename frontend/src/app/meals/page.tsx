@@ -21,6 +21,11 @@ interface MealItemForm {
   fat: number;
   food_name: string;
   photo_preview: string | null;
+  // Per-100g base values for recalculation
+  cal_per_100: number;
+  protein_per_100: number;
+  carbs_per_100: number;
+  fat_per_100: number;
 }
 
 const MEAL_TYPES = [
@@ -95,6 +100,10 @@ export default function MealsPage() {
       carbs: Math.round(food.carbs_per_100g * ratio * 10) / 10,
       fat: Math.round(food.fat_per_100g * ratio * 10) / 10,
       food_name: food.name, photo_preview: null,
+      cal_per_100: food.calories_per_100g,
+      protein_per_100: food.protein_per_100g,
+      carbs_per_100: food.carbs_per_100g,
+      fat_per_100: food.fat_per_100g,
     }]);
     setFoodSearch('');
     setFoodResults([]);
@@ -109,6 +118,10 @@ export default function MealsPage() {
       carbs: Math.round(food.c * ratio * 10) / 10,
       fat: Math.round(food.f * ratio * 10) / 10,
       food_name: food.name, photo_preview: null,
+      cal_per_100: food.cal,
+      protein_per_100: food.p,
+      carbs_per_100: food.c,
+      fat_per_100: food.f,
     }]);
   };
 
@@ -116,11 +129,24 @@ export default function MealsPage() {
     setItems(prev => [...prev, {
       food_id: null, custom_name: '', quantity_g: 100, calories: 0,
       protein: 0, carbs: 0, fat: 0, food_name: '', photo_preview: null,
+      cal_per_100: 0, protein_per_100: 0, carbs_per_100: 0, fat_per_100: 0,
     }]);
   };
 
   const updateItem = (index: number, field: string, value: any) => {
-    setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+    setItems(prev => prev.map((item, i) => {
+      if (i !== index) return item;
+      const updated = { ...item, [field]: value };
+      // Recalculate calories and macros when quantity changes
+      if (field === 'quantity_g' && updated.cal_per_100 > 0) {
+        const ratio = value / 100;
+        updated.calories = Math.round(updated.cal_per_100 * ratio);
+        updated.protein = Math.round(updated.protein_per_100 * ratio * 10) / 10;
+        updated.carbs = Math.round(updated.carbs_per_100 * ratio * 10) / 10;
+        updated.fat = Math.round(updated.fat_per_100 * ratio * 10) / 10;
+      }
+      return updated;
+    }));
   };
 
   const removeItem = (index: number) => {
