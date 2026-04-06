@@ -161,8 +161,8 @@ def daily_reminders(user: User = Depends(get_current_user), db: Session = Depend
         reminders.append({
             "type": "water",
             "icon": "droplets",
-            "title": "Su i\u00e7meyi unutma!",
-            "message": f"Bug\u00fcn {remaining_l}L daha su i\u00e7men gerekiyor.",
+            "title": "Su içmeyi unutma!",
+            "message": f"Bugün {remaining_l}L daha su içmen gerekiyor.",
             "priority": "medium" if water_total < 1000 else "low",
         })
 
@@ -178,16 +178,16 @@ def daily_reminders(user: User = Depends(get_current_user), db: Session = Depend
         reminders.append({
             "type": "meal",
             "icon": "utensils",
-            "title": "Bug\u00fcn hen\u00fcz \u00f6\u011f\u00fcn eklenmedi",
-            "message": "Sa\u011fl\u0131kl\u0131 bir kahvalt\u0131 ile g\u00fcne ba\u015fla!",
+            "title": "Bugün henüz öğün eklenmedi",
+            "message": "Sağlıklı bir kahvaltı ile güne başla!",
             "priority": "high",
         })
     elif meal_count < 3 and hour >= 18:
         reminders.append({
             "type": "meal",
             "icon": "utensils",
-            "title": "\u00d6\u011f\u00fcnlerini tamamla",
-            "message": f"Bug\u00fcn {meal_count} \u00f6\u011f\u00fcn kaydettin. Eksik \u00f6\u011f\u00fcnlerini girmeyi unutma!",
+            "title": "Öğünlerini tamamla",
+            "message": f"Bugün {meal_count} öğün kaydettin. Eksik öğünlerini girmeyi unutma!",
             "priority": "medium",
         })
 
@@ -211,7 +211,7 @@ def daily_reminders(user: User = Depends(get_current_user), db: Session = Depend
                 "type": "challenge",
                 "icon": "target",
                 "title": f"{len(pending)} challenge bekliyor",
-                "message": pending[0].title + (" ve daha fazlas\u0131..." if len(pending) > 1 else ""),
+                "message": pending[0].title + (" ve daha fazlası..." if len(pending) > 1 else ""),
                 "priority": "low",
             })
 
@@ -221,8 +221,8 @@ def daily_reminders(user: User = Depends(get_current_user), db: Session = Depend
         reminders.append({
             "type": "calorie_warning",
             "icon": "flame",
-            "title": "Kalori hedefini a\u015ft\u0131n!",
-            "message": f"Bug\u00fcn hedefinden {over} kcal fazla t\u00fckettin.",
+            "title": "Kalori hedefini aştın!",
+            "message": f"Bugün hedefinden {over} kcal fazla tükettin.",
             "priority": "high",
         })
 

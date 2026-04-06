@@ -24,14 +24,14 @@ interface MealItemForm {
 }
 
 const MEAL_TYPES = [
-  { value: 'breakfast', label: 'Kahvalt\u0131', Icon: Sunrise },
-  { value: 'lunch', label: '\u00D6\u011Fle', Icon: Sun },
-  { value: 'dinner', label: 'Ak\u015Fam', Icon: Moon },
-  { value: 'snack', label: 'At\u0131\u015Ft\u0131rmal\u0131k', Icon: Apple },
+  { value: 'breakfast', label: 'Kahvaltı', Icon: Sunrise },
+  { value: 'lunch', label: 'Öğle', Icon: Sun },
+  { value: 'dinner', label: 'Akşam', Icon: Moon },
+  { value: 'snack', label: 'Atıştırmalık', Icon: Apple },
 ];
 
 const MEAL_LABEL_MAP: Record<string, string> = {
-  breakfast: 'Kahvalt\u0131', lunch: '\u00D6\u011Fle', dinner: 'Ak\u015Fam', snack: 'At\u0131\u015Ft\u0131rmal\u0131k',
+  breakfast: 'Kahvaltı', lunch: 'Öğle', dinner: 'Akşam', snack: 'Atıştırmalık',
 };
 
 const MEAL_ICON_MAP: Record<string, typeof Sunrise> = {
@@ -40,14 +40,14 @@ const MEAL_ICON_MAP: Record<string, typeof Sunrise> = {
 
 // Popular Turkish foods for quick-pick (matches seed data names)
 const POPULAR_FOODS = [
-  { name: 'Tavuk g\u00F6\u011Fs\u00FC (\u0131zgara)', cal: 165, p: 31, c: 0, f: 3.6, portion: 150, category: 'protein' },
+  { name: 'Tavuk göğsü (ızgara)', cal: 165, p: 31, c: 0, f: 3.6, portion: 150, category: 'protein' },
   { name: 'Pilav', cal: 130, p: 2.7, c: 28, f: 0.3, portion: 200, category: 'grain' },
-  { name: 'Mercimek \u00E7orbas\u0131', cal: 56, p: 3.5, c: 9, f: 0.8, portion: 300, category: 'soup' },
-  { name: 'Yumurta (ha\u015Flanm\u0131\u015F)', cal: 155, p: 13, c: 1.1, f: 11, portion: 60, category: 'protein' },
-  { name: 'Yo\u011Furt (tam ya\u011Fl\u0131)', cal: 61, p: 3.5, c: 4.7, f: 3.3, portion: 200, category: 'dairy' },
+  { name: 'Mercimek çorbası', cal: 56, p: 3.5, c: 9, f: 0.8, portion: 300, category: 'soup' },
+  { name: 'Yumurta (haşlanmış)', cal: 155, p: 13, c: 1.1, f: 11, portion: 60, category: 'protein' },
+  { name: 'Yoğurt (tam yağlı)', cal: 61, p: 3.5, c: 4.7, f: 3.3, portion: 200, category: 'dairy' },
   { name: 'Ekmek (beyaz)', cal: 265, p: 9, c: 49, f: 3.2, portion: 50, category: 'grain' },
-  { name: 'K\u00F6fte', cal: 250, p: 17, c: 7, f: 17, portion: 80, category: 'protein' },
-  { name: 'Salata (kar\u0131\u015F\u0131k)', cal: 20, p: 1, c: 4, f: 0.2, portion: 200, category: 'vegetable' },
+  { name: 'Köfte', cal: 250, p: 17, c: 7, f: 17, portion: 80, category: 'protein' },
+  { name: 'Salata (karışık)', cal: 20, p: 1, c: 4, f: 0.2, portion: 200, category: 'vegetable' },
 ];
 
 export default function MealsPage() {
@@ -182,7 +182,7 @@ export default function MealsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <UtensilsCrossed size={20} className="text-primary-500" />
-            <h1 className="text-heading">\u00D6\u011F\u00FCnler</h1>
+            <h1 className="text-heading">Öğünler</h1>
           </div>
           <div className="text-right">
             <p className="text-body font-bold">{totalCalories} <span className="text-surface-400 font-normal">/ {goal} kcal</span></p>
@@ -213,7 +213,7 @@ export default function MealsPage() {
             <div className="flex-1 bg-rose-50 dark:bg-rose-900/20 rounded-btn p-2">
               <div className="flex items-center justify-center gap-1 text-rose-600 dark:text-rose-400">
                 <Droplet size={12} />
-                <span className="text-micro font-semibold">Ya\u011F</span>
+                <span className="text-micro font-semibold">Yağ</span>
               </div>
               <p className="text-body font-bold text-rose-700 dark:text-rose-300">{Math.round(totalMacros.fat)}g</p>
             </div>
@@ -223,18 +223,18 @@ export default function MealsPage() {
         {/* Add meal */}
         {!showForm ? (
           <button onClick={() => setShowForm(true)} className="btn-primary w-full flex items-center justify-center gap-2">
-            <Plus size={18} /> \u00D6\u011F\u00FCn Ekle
+            <Plus size={18} /> Öğün Ekle
           </button>
         ) : (
           <form onSubmit={submitMeal} className="card p-4 space-y-4">
             <div>
-              <label className="block text-caption font-semibold mb-1">\u00D6\u011F\u00FCn Ad\u0131</label>
+              <label className="block text-caption font-semibold mb-1">Öğün Adı</label>
               <input className="input-field" value={title} onChange={e => setTitle(e.target.value)}
-                placeholder="\u00F6rn. \u00D6\u011Fle yeme\u011Fi" required />
+                placeholder="örn. Öğle yemeği" required />
             </div>
 
             <div>
-              <label className="block text-caption font-semibold mb-2">\u00D6\u011F\u00FCn T\u00FCr\u00FC</label>
+              <label className="block text-caption font-semibold mb-2">Öğün Türü</label>
               <div className="grid grid-cols-4 gap-2">
                 {MEAL_TYPES.map(t => (
                   <button key={t.value} type="button" onClick={() => setMealType(t.value)}
@@ -251,7 +251,7 @@ export default function MealsPage() {
 
             {/* Photo upload */}
             <div>
-              <label className="block text-caption font-semibold mb-1">Foto\u011Fraf (opsiyonel)</label>
+              <label className="block text-caption font-semibold mb-1">Fotoğraf (opsiyonel)</label>
               <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
               {mealPhoto ? (
                 <div className="relative">
@@ -265,7 +265,7 @@ export default function MealsPage() {
                 <button type="button" onClick={() => photoInputRef.current?.click()}
                   className="w-full border-2 border-dashed border-surface-200 dark:border-surface-600 rounded-btn p-4 flex flex-col items-center gap-1.5 text-surface-400 hover:border-primary-300 hover:text-primary-500 transition-colors">
                   <Camera size={22} />
-                  <span className="text-caption">Foto\u011Fraf ekle</span>
+                  <span className="text-caption">Fotoğraf ekle</span>
                 </button>
               )}
             </div>
@@ -275,7 +275,7 @@ export default function MealsPage() {
               <button type="button" onClick={() => setShowPopular(!showPopular)}
                 className="flex items-center gap-1.5 text-caption font-semibold text-surface-600 dark:text-surface-300 mb-2">
                 <Sparkles size={14} className="text-primary-500" />
-                Pop\u00FCler T\u00FCrk Yemekleri
+                Popüler Türk Yemekleri
                 {showPopular ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
               {showPopular && (
@@ -300,7 +300,7 @@ export default function MealsPage() {
               <div className="relative">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
                 <input className="input-field pl-9" value={foodSearch} onChange={e => setFoodSearch(e.target.value)}
-                  placeholder="Ara... (\u00F6rn. tavuk, pilav, \u00E7orba)" />
+                  placeholder="Ara... (örn. tavuk, pilav, çorba)" />
               </div>
               {foodResults.length > 0 && (
                 <div className="mt-2 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-btn overflow-hidden max-h-48 overflow-y-auto">
@@ -332,11 +332,11 @@ export default function MealsPage() {
                 {items.map((item, i) => (
                   <div key={i} className="bg-surface-50 dark:bg-surface-700 p-3 rounded-btn">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-body font-medium">{item.food_name || item.custom_name || '\u00D6zel yemek'}</span>
+                      <span className="text-body font-medium">{item.food_name || item.custom_name || 'Özel yemek'}</span>
                       <button type="button" onClick={() => removeItem(i)} className="text-danger"><Trash2 size={14} /></button>
                     </div>
                     {!item.food_id && (
-                      <input className="input-field text-body mb-2" placeholder="Yemek ad\u0131"
+                      <input className="input-field text-body mb-2" placeholder="Yemek adı"
                         value={item.custom_name} onChange={e => updateItem(i, 'custom_name', e.target.value)} />
                     )}
                     <div className="grid grid-cols-2 gap-2">
@@ -383,15 +383,15 @@ export default function MealsPage() {
                   </p>
                   <p className="text-micro text-surface-400">
                     P: {items.reduce((s, i) => s + i.protein, 0).toFixed(1)}g
-                    {' \u00B7 '}K: {items.reduce((s, i) => s + i.carbs, 0).toFixed(1)}g
-                    {' \u00B7 '}Y: {items.reduce((s, i) => s + i.fat, 0).toFixed(1)}g
+                    {' · '}K: {items.reduce((s, i) => s + i.carbs, 0).toFixed(1)}g
+                    {' · '}Y: {items.reduce((s, i) => s + i.fat, 0).toFixed(1)}g
                   </p>
                 </div>
               </div>
             )}
 
             <div className="flex gap-2">
-              <button type="button" onClick={() => { setShowForm(false); setItems([]); setMealPhoto(null); }} className="btn-secondary flex-1">\u0130ptal</button>
+              <button type="button" onClick={() => { setShowForm(false); setItems([]); setMealPhoto(null); }} className="btn-secondary flex-1">İptal</button>
               <button type="submit" className="btn-primary flex-1" disabled={loading || items.length === 0}>
                 {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Kaydet'}
               </button>
@@ -406,16 +406,16 @@ export default function MealsPage() {
               <div className="w-14 h-14 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <UtensilsCrossed size={24} className="text-primary-400" />
               </div>
-              <h3 className="text-body font-bold mb-1">Bug\u00FCn hen\u00FCz \u00F6\u011F\u00FCn eklenmedi</h3>
+              <h3 className="text-body font-bold mb-1">Bugün henüz öğün eklenmedi</h3>
               <p className="text-caption text-surface-400 mb-4">
-                \u0130lk \u00F6\u011F\u00FCn\u00FC ekleyerek g\u00FCn\u00FCne ba\u015Fla! Sa\u011Fl\u0131kl\u0131 bir kahvalt\u0131 ile
-                g\u00FCne enerji dolu ba\u015Flayabilirsin.
+                İlk öğünü ekleyerek gününe başla! Sağlıklı bir kahvaltı ile
+                güne enerji dolu başlayabilirsin.
               </p>
               <div className="flex flex-wrap justify-center gap-2 mb-5">
                 {[
                   { label: 'Yulaf ezmesi', cal: '170 kcal' },
                   { label: 'Yumurta + ekmek', cal: '225 kcal' },
-                  { label: 'Yo\u011Furt + meyve', cal: '180 kcal' },
+                  { label: 'Yoğurt + meyve', cal: '180 kcal' },
                 ].map(s => (
                   <div key={s.label} className="bg-surface-50 dark:bg-surface-700 px-3 py-1.5 rounded-full text-caption">
                     <span className="font-medium">{s.label}</span>
@@ -424,7 +424,7 @@ export default function MealsPage() {
                 ))}
               </div>
               <button onClick={() => setShowForm(true)} className="btn-accent inline-flex items-center gap-2 px-6">
-                <Sparkles size={16} /> Bug\u00FCnk\u00FC ilk \u00F6\u011F\u00FCn\u00FC ekle!
+                <Sparkles size={16} /> Bugünkü ilk öğünü ekle!
               </button>
             </div>
           )}
@@ -449,7 +449,7 @@ export default function MealsPage() {
                     <div>
                       <p className="text-body font-semibold">{meal.title}</p>
                       <p className="text-micro text-surface-400">
-                        {mealLabel} \u00B7 {new Date(meal.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {mealLabel} · {new Date(meal.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>

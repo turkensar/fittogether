@@ -10,7 +10,7 @@ import {
   Target, Scale, Ruler, Users, UtensilsCrossed, Droplets, ChevronRight,
 } from 'lucide-react';
 
-const EMOJIS = ['\uD83D\uDE0A', '\uD83D\uDCAA', '\uD83D\uDD25', '\uD83C\uDF1F', '\uD83E\uDD8B', '\uD83C\uDF38', '\uD83C\uDFAF', '\uD83C\uDFCB\uFE0F', '\uD83E\uDDD8', '\u2764\uFE0F'];
+const EMOJIS = ['\uD83D\uDE0A', '\uD83D\uDCAA', '\uD83D\uDD25', '\uD83C\uDF1F', '\uD83E\uDD8B', '\uD83C\uDF38', '\uD83C\uDFAF', '\uD83C\uDFCB️', '\uD83E\uDDD8', '❤️'];
 const COLORS = ['#7c5cfc', '#ec4899', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#14b8a6', '#8b5cf6'];
 
 const INTRO_SLIDES = [
@@ -18,22 +18,22 @@ const INTRO_SLIDES = [
     Icon: Heart,
     color: 'text-pink-500',
     bg: 'from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20',
-    title: 'FitTogether\'a Ho\u015F Geldin!',
-    desc: 'Partnerinle birlikte sa\u011Fl\u0131kl\u0131 ya\u015Fam yolculu\u011Funa ba\u015Fla. Birbirinizi motive edin, hedeflerinize birlikte ula\u015F\u0131n.',
+    title: 'FitTogether\'a Hoş Geldin!',
+    desc: 'Partnerinle birlikte sağlıklı yaşam yolculuğuna başla. Birbirinizi motive edin, hedeflerinize birlikte ulaşın.',
   },
   {
     Icon: UtensilsCrossed,
     color: 'text-primary-500',
     bg: 'from-primary-50 to-violet-50 dark:from-primary-900/20 dark:to-violet-900/20',
-    title: '\u00D6\u011F\u00FCnlerini Takip Et',
-    desc: 'T\u00FCrk mutfa\u011F\u0131na \u00F6zel yemek veritaban\u0131 ile kalori ve makro de\u011Ferlerini kolayca kaydet. Protein, karbonhidrat, ya\u011F hepsini g\u00F6r.',
+    title: 'Öğünlerini Takip Et',
+    desc: 'Türk mutfağına özel yemek veritabanı ile kalori ve makro değerlerini kolayca kaydet. Protein, karbonhidrat, yağ hepsini gör.',
   },
   {
     Icon: Trophy,
     color: 'text-yellow-500',
     bg: 'from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20',
     title: 'Rozetler ve Puanlar',
-    desc: 'G\u00FCnl\u00FCk meydan okumalar\u0131 tamamla, rozetler kazan, partnerinle yar\u0131\u015F. Kim daha \u00E7ok puan toplayacak?',
+    desc: 'Günlük meydan okumaları tamamla, rozetler kazan, partnerinle yarış. Kim daha çok puan toplayacak?',
   },
 ];
 
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
       {/* Progress bar */}
       <div className="max-w-lg mx-auto w-full mb-6 mt-2">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-micro text-surface-400">Ad\u0131m {step + 1} / {totalSteps}</span>
+          <span className="text-micro text-surface-400">Adım {step + 1} / {totalSteps}</span>
           <span className="text-micro text-primary-500 font-semibold">%{Math.round(progressPct)}</span>
         </div>
         <div className="w-full bg-white/50 dark:bg-surface-700 rounded-full h-2">
@@ -119,7 +119,7 @@ export default function OnboardingPage() {
                   {step === 0 && (
                     <div className="flex flex-wrap justify-center gap-2 mt-6">
                       {[
-                        { Icon: UtensilsCrossed, text: '\u00D6\u011F\u00FCn Takibi' },
+                        { Icon: UtensilsCrossed, text: 'Öğün Takibi' },
                         { Icon: Droplets, text: 'Su Takibi' },
                         { Icon: Flame, text: 'Streak' },
                         { Icon: Trophy, text: 'Rozetler' },
@@ -143,24 +143,24 @@ export default function OnboardingPage() {
               <div className="w-14 h-14 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Scale size={24} className="text-primary-500" />
               </div>
-              <h1 className="text-heading">V\u00FCcut Bilgilerin</h1>
-              <p className="text-caption text-surface-400 mt-1">Sana \u00F6zel hedefler belirleyelim</p>
+              <h1 className="text-heading">Vücut Bilgilerin</h1>
+              <p className="text-caption text-surface-400 mt-1">Sana özel hedefler belirleyelim</p>
             </div>
 
             <div className="card p-5 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-caption font-semibold mb-1">Ya\u015F</label>
+                  <label className="block text-caption font-semibold mb-1">Yaş</label>
                   <input type="number" className="input-field" placeholder="25"
                     value={form.age} onChange={e => setForm(f => ({ ...f, age: e.target.value }))} />
                 </div>
                 <div>
                   <label className="block text-caption font-semibold mb-1">Cinsiyet</label>
                   <select className="input-field" value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}>
-                    <option value="">Se\u00E7</option>
+                    <option value="">Seç</option>
                     <option value="male">Erkek</option>
-                    <option value="female">Kad\u0131n</option>
-                    <option value="other">Di\u011Fer</option>
+                    <option value="female">Kadın</option>
+                    <option value="other">Diğer</option>
                   </select>
                 </div>
               </div>
@@ -209,13 +209,13 @@ export default function OnboardingPage() {
               <div className="w-14 h-14 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Flame size={24} className="text-orange-500" />
               </div>
-              <h1 className="text-heading">G\u00FCnl\u00FCk Hedefin</h1>
-              <p className="text-caption text-surface-400 mt-1">Ka\u00E7 kalori hedefliyorsun?</p>
+              <h1 className="text-heading">Günlük Hedefin</h1>
+              <p className="text-caption text-surface-400 mt-1">Kaç kalori hedefliyorsun?</p>
             </div>
 
             <div className="card p-5 space-y-4">
               <div>
-                <label className="block text-caption font-semibold mb-2">G\u00FCnl\u00FCk Kalori Hedefi (kcal)</label>
+                <label className="block text-caption font-semibold mb-2">Günlük Kalori Hedefi (kcal)</label>
                 <input type="number" className="input-field text-center text-lg font-bold"
                   value={form.daily_calorie_goal}
                   onChange={e => setForm(f => ({ ...f, daily_calorie_goal: e.target.value }))} />
@@ -223,7 +223,7 @@ export default function OnboardingPage() {
 
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { label: 'H\u0131zl\u0131 Zay\u0131fla', val: '1500', desc: '1500 kcal' },
+                  { label: 'Hızlı Zayıfla', val: '1500', desc: '1500 kcal' },
                   { label: 'Dengeli', val: '2000', desc: '2000 kcal' },
                   { label: 'Kas Yap', val: '2500', desc: '2500 kcal' },
                 ].map(opt => (
@@ -240,7 +240,7 @@ export default function OnboardingPage() {
               </div>
 
               <p className="text-micro text-surface-400 text-center">
-                Bu de\u011Feri daha sonra ayarlardan de\u011Fi\u015Ftirebilirsin
+                Bu değeri daha sonra ayarlardan değiştirebilirsin
               </p>
             </div>
           </div>
@@ -253,8 +253,8 @@ export default function OnboardingPage() {
               <div className="w-14 h-14 bg-accent-100 dark:bg-accent-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Sparkles size={24} className="text-accent-500" />
               </div>
-              <h1 className="text-heading">Avatarini Se\u00E7</h1>
-              <p className="text-caption text-surface-400 mt-1">Seni yans\u0131tan bir avatar belirle</p>
+              <h1 className="text-heading">Avatarini Seç</h1>
+              <p className="text-caption text-surface-400 mt-1">Seni yansıtan bir avatar belirle</p>
             </div>
 
             <div className="card p-5 space-y-4">
@@ -287,7 +287,7 @@ export default function OnboardingPage() {
 
               <div className="bg-success/10 rounded-btn p-3 text-center mt-2">
                 <p className="text-caption text-success font-semibold">
-                  Haz\u0131rs\u0131n! Profilini kaydedip partnerini davet edebilirsin.
+                  Hazırsın! Profilini kaydedip partnerini davet edebilirsin.
                 </p>
               </div>
             </div>
@@ -318,7 +318,7 @@ export default function OnboardingPage() {
         {/* Skip intro */}
         {step <= 2 && (
           <button onClick={() => setStep(3)} className="text-caption text-surface-400 text-center mb-4 hover:text-primary-500 transition-colors">
-            Tan\u0131t\u0131m\u0131 atla \u2192
+            Tanıtımı atla →
           </button>
         )}
       </div>

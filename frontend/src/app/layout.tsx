@@ -4,7 +4,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'FitTogether - Birlikte Diyet',
-  description: 'Partnerinle birlikte diyet yolculu\u011Funa \u00E7\u0131k!',
+  description: 'Partnerinle birlikte diyet yolculuğuna çık!',
 };
 
 export const viewport: Viewport = {

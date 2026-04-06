@@ -7,7 +7,7 @@ interface ErrorAlertProps {
   onRetry?: () => void;
 }
 
-export default function ErrorAlert({ message = 'Bir hata olu\u015Ftu. L\u00FCtfen tekrar dene.', onRetry }: ErrorAlertProps) {
+export default function ErrorAlert({ message = 'Bir hata oluştu. Lütfen tekrar dene.', onRetry }: ErrorAlertProps) {
   return (
     <div className="error-banner animate-fade-in">
       <AlertTriangle size={18} className="flex-shrink-0 mt-0.5" />

@@ -41,7 +41,7 @@ export default function ProgressPage() {
 
   const loadData = () => {
     setError(null);
-    api.get<WeightProgress>('/api/tracking/weight/progress').then(setMyProgress).catch(() => setError('\u0130lerleme verileri y\u00FCklenemedi.'));
+    api.get<WeightProgress>('/api/tracking/weight/progress').then(setMyProgress).catch(() => setError('İlerleme verileri yüklenemedi.'));
     api.get('/api/tracking/weight/partner-progress').then(setPartnerProgress).catch(() => {});
     api.get<BadgeType[]>('/api/gamification/badges').then(data => {
       setBadges(data);
@@ -82,7 +82,7 @@ export default function ProgressPage() {
 
   const formatDay = (dateStr: string) => {
     const d = new Date(dateStr);
-    const days = ['Pz', 'Pt', 'Sa', '\u00C7a', 'Pe', 'Cu', 'Ct'];
+    const days = ['Pz', 'Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct'];
     return days[d.getDay()];
   };
 
@@ -91,7 +91,7 @@ export default function ProgressPage() {
   }
 
   if (authLoading || !myProgress) {
-    return <AppShell><Spinner label="Y\u00FCkleniyor..." /></AppShell>;
+    return <AppShell><Spinner label="Yükleniyor..." /></AppShell>;
   }
 
   const chartData = myProgress.logs.map(l => ({
@@ -109,13 +109,13 @@ export default function ProgressPage() {
       <div className="space-y-3 pb-4">
         <div className="flex items-center gap-2">
           <TrendingUp size={20} className="text-primary-500" />
-          <h1 className="text-heading">\u0130lerleme</h1>
+          <h1 className="text-heading">İlerleme</h1>
         </div>
 
         {/* Weight summary */}
         <div className="card">
           <button onClick={() => toggleSection('weight')} className="w-full flex items-center justify-between mb-3">
-            <h3 className="section-title"><Scale size={16} /> Kilo Yolculu\u011Fum</h3>
+            <h3 className="section-title"><Scale size={16} /> Kilo Yolculuğum</h3>
             <div className="flex items-center gap-2">
               <span className="text-caption text-primary-500 font-bold">%{myProgress.percentage}</span>
               {expandedSections.weight ? <ChevronUp size={16} className="text-surface-400" /> : <ChevronDown size={16} className="text-surface-400" />}
@@ -126,11 +126,11 @@ export default function ProgressPage() {
             <>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="text-center">
-                  <p className="stat-label">Ba\u015Flang\u0131\u00E7</p>
+                  <p className="stat-label">Başlangıç</p>
                   <p className="text-body font-bold">{myProgress.start_weight} kg</p>
                 </div>
                 <div className="text-center">
-                  <p className="stat-label">\u015Eimdiki</p>
+                  <p className="stat-label">Şimdiki</p>
                   <p className="text-body font-bold text-primary-500">{myProgress.current_weight} kg</p>
                 </div>
                 <div className="text-center">
@@ -145,7 +145,7 @@ export default function ProgressPage() {
                   {myProgress.percentage > 15 && <span className="text-[8px] text-white font-bold">{myProgress.lost}kg</span>}
                 </div>
               </div>
-              <p className="text-micro text-surface-400 text-center">\u015Eu ana kadar {myProgress.lost} kg verildi!</p>
+              <p className="text-micro text-surface-400 text-center">Şu ana kadar {myProgress.lost} kg verildi!</p>
             </>
           )}
         </div>
@@ -153,7 +153,7 @@ export default function ProgressPage() {
         {/* Weight chart */}
         {chartData.length > 1 && expandedSections.weight && (
           <div className="card">
-            <h3 className="section-title mb-3">Kilo De\u011Fi\u015Fim Grafi\u011Fi</h3>
+            <h3 className="section-title mb-3">Kilo Değişim Grafiği</h3>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
@@ -177,7 +177,7 @@ export default function ProgressPage() {
         {weeklyCalories.length > 0 && (
           <div className="card">
             <button onClick={() => toggleSection('calories')} className="w-full flex items-center justify-between mb-3">
-              <h3 className="section-title"><Flame size={16} /> Haftal\u0131k Kalori</h3>
+              <h3 className="section-title"><Flame size={16} /> Haftalık Kalori</h3>
               <div className="flex items-center gap-2">
                 <span className="text-micro text-surface-400">Ort: {avgCalories} kcal</span>
                 {expandedSections.calories ? <ChevronUp size={16} className="text-surface-400" /> : <ChevronDown size={16} className="text-surface-400" />}
@@ -209,10 +209,10 @@ export default function ProgressPage() {
             {expandedSections.calories && (
               <div className="flex items-center justify-center gap-4 mt-2 text-micro text-surface-400">
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-primary-500 inline-block" /> Hedef alt\u0131
+                  <span className="w-2.5 h-2.5 rounded-sm bg-primary-500 inline-block" /> Hedef altı
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-danger inline-block" /> Hedef \u00FCst\u00FC
+                  <span className="w-2.5 h-2.5 rounded-sm bg-danger inline-block" /> Hedef üstü
                 </span>
               </div>
             )}
@@ -223,7 +223,7 @@ export default function ProgressPage() {
         {weeklyWater.length > 0 && (
           <div className="card">
             <button onClick={() => toggleSection('water')} className="w-full flex items-center justify-between mb-3">
-              <h3 className="section-title"><Droplets size={16} /> Haftal\u0131k Su T\u00FCketimi</h3>
+              <h3 className="section-title"><Droplets size={16} /> Haftalık Su Tüketimi</h3>
               {expandedSections.water ? <ChevronUp size={16} className="text-surface-400" /> : <ChevronDown size={16} className="text-surface-400" />}
             </button>
             {expandedSections.water && (
@@ -251,7 +251,7 @@ export default function ProgressPage() {
                     </div>
                   );
                 })}
-                <p className="text-micro text-surface-400 text-center mt-1">G\u00FCnl\u00FCk hedef: 2L</p>
+                <p className="text-micro text-surface-400 text-center mt-1">Günlük hedef: 2L</p>
               </div>
             )}
           </div>
@@ -275,11 +275,11 @@ export default function ProgressPage() {
             <h3 className="section-title mb-2"><Users size={16} /> {partnerProgress.name}</h3>
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center">
-                <p className="stat-label">Ba\u015Flang\u0131\u00E7</p>
+                <p className="stat-label">Başlangıç</p>
                 <p className="text-body font-bold">{partnerProgress.start_weight} kg</p>
               </div>
               <div className="text-center">
-                <p className="stat-label">\u015Eimdiki</p>
+                <p className="stat-label">Şimdiki</p>
                 <p className="text-body font-bold text-accent-500">{partnerProgress.current_weight} kg</p>
               </div>
               <div className="text-center">
@@ -293,7 +293,7 @@ export default function ProgressPage() {
         {/* Couple leaderboard */}
         {leaderboard && leaderboard.partner_name && (
           <div className="card">
-            <h3 className="section-title mb-3"><Trophy size={16} /> \u00C7ift S\u0131ralamas\u0131</h3>
+            <h3 className="section-title mb-3"><Trophy size={16} /> Çift Sıralaması</h3>
             <div className="space-y-2">
               {[
                 { name: user?.name || 'Ben', score: leaderboard.my_score },
@@ -360,7 +360,7 @@ export default function ProgressPage() {
                     {earned && (
                       <div className="flex items-center justify-center gap-0.5 mt-1">
                         <Star size={8} className="text-yellow-500 fill-yellow-500" />
-                        <span className="text-micro text-success font-semibold">Kazan\u0131ld\u0131</span>
+                        <span className="text-micro text-success font-semibold">Kazanıldı</span>
                       </div>
                     )}
                   </button>
@@ -386,12 +386,12 @@ export default function ProgressPage() {
               {selectedBadge.earned_at ? (
                 <div className="bg-success/10 text-success rounded-btn px-4 py-2 text-caption font-semibold">
                   <Star size={12} className="inline mr-1 fill-current" />
-                  {new Date(selectedBadge.earned_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} tarihinde kazan\u0131ld\u0131
+                  {new Date(selectedBadge.earned_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} tarihinde kazanıldı
                 </div>
               ) : (
                 <div className="bg-surface-50 dark:bg-surface-700 rounded-btn px-4 py-2 text-caption text-surface-400">
                   <Lock size={12} className="inline mr-1" />
-                  Hen\u00FCz kazan\u0131lmad\u0131
+                  Henüz kazanılmadı
                 </div>
               )}
             </div>

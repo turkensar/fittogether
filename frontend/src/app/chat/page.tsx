@@ -31,22 +31,22 @@ const ONBOARDING_SLIDES = [
     Icon: Heart,
     color: 'text-pink-500',
     bg: 'bg-pink-50 dark:bg-pink-900/20',
-    title: 'Birlikte Daha G\u00FC\u00E7l\u00FC',
-    desc: 'Partnerinle e\u015Fle\u015F ve diyet yolculu\u011Funuzu birlikte y\u00FCr\u00FCt\u00FCn. Birbirinizi motive edin, mesajla\u015F\u0131n ve ba\u015Far\u0131lar\u0131n\u0131z\u0131 kutlay\u0131n.',
+    title: 'Birlikte Daha Güçlü',
+    desc: 'Partnerinle eşleş ve diyet yolculuğunuzu birlikte yürütün. Birbirinizi motive edin, mesajlaşın ve başarılarınızı kutlayın.',
   },
   {
     Icon: Flame,
     color: 'text-orange-500',
     bg: 'bg-orange-50 dark:bg-orange-900/20',
-    title: 'Couple Streak Kazan\u0131n',
-    desc: '\u0130kiniz de her g\u00FCn \u00F6\u011F\u00FCn kaydederse streak sayac\u0131n\u0131z artar. Birlikte tutarl\u0131 olun ve \u00F6d\u00FCller kazan\u0131n!',
+    title: 'Couple Streak Kazanın',
+    desc: 'İkiniz de her gün öğün kaydederse streak sayacınız artar. Birlikte tutarlı olun ve ödüller kazanın!',
   },
   {
     Icon: Trophy,
     color: 'text-yellow-500',
     bg: 'bg-yellow-50 dark:bg-yellow-900/20',
-    title: 'Challenge\'lar\u0131 Birlikte Tamamlay\u0131n',
-    desc: 'G\u00FCnl\u00FCk meydan okumalar\u0131 tamamlay\u0131n, puan toplay\u0131n ve liderlik tablosunda yar\u0131\u015F\u0131n. Kim daha \u00E7ok puan toplayacak?',
+    title: 'Challenge\'ları Birlikte Tamamlayın',
+    desc: 'Günlük meydan okumaları tamamlayın, puan toplayın ve liderlik tablosunda yarışın. Kim daha çok puan toplayacak?',
   },
 ];
 
@@ -144,7 +144,7 @@ export default function ChatPage() {
           </button>
 
           <p className="text-micro text-surface-400 mt-4">
-            E\u015Fle\u015Fmek i\u00E7in davet kodunu payla\u015F veya partnerinin kodunu gir
+            Eşleşmek için davet kodunu paylaş veya partnerinin kodunu gir
           </p>
         </div>
       </AppShell>
@@ -199,7 +199,7 @@ export default function ChatPage() {
               className={`px-2.5 py-1.5 rounded-btn text-micro font-semibold flex items-center gap-1 transition-colors
                 ${showComparison ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600' : 'bg-surface-100 dark:bg-surface-700 text-surface-500'}`}>
               <Zap size={12} />
-              Kar\u015F\u0131la\u015Ft\u0131r
+              Karşılaştır
             </button>
           )}
         </div>
@@ -218,7 +218,7 @@ export default function ChatPage() {
           {messages.length === 0 && (
             <div className="text-center text-surface-400 text-body pt-10">
               <MessageCircle size={32} className="mx-auto mb-2 text-surface-300" />
-              <p>Hen\u00FCz mesaj yok. Merhaba de!</p>
+              <p>Henüz mesaj yok. Merhaba de!</p>
             </div>
           )}
           {messages.map(msg => {

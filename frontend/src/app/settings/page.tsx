@@ -16,37 +16,37 @@ type Lang = 'tr' | 'en';
 const T: Record<string, Record<Lang, string>> = {
   settings: { tr: 'Ayarlar', en: 'Settings' },
   account: { tr: 'Hesap', en: 'Account' },
-  appearance: { tr: 'G\u00F6r\u00FCn\u00FCm', en: 'Appearance' },
+  appearance: { tr: 'Görünüm', en: 'Appearance' },
   notifications: { tr: 'Bildirimler', en: 'Notifications' },
-  about: { tr: 'Hakk\u0131nda', en: 'About' },
-  editProfile: { tr: 'Profili D\u00FCzenle', en: 'Edit Profile' },
+  about: { tr: 'Hakkında', en: 'About' },
+  editProfile: { tr: 'Profili Düzenle', en: 'Edit Profile' },
   save: { tr: 'Kaydet', en: 'Save' },
-  cancel: { tr: '\u0130ptal', en: 'Cancel' },
+  cancel: { tr: 'İptal', en: 'Cancel' },
   calorieGoal: { tr: 'Kalori Hedefi', en: 'Calorie Goal' },
   height: { tr: 'Boy', en: 'Height' },
   currentWeight: { tr: 'Mevcut Kilo', en: 'Current Weight' },
   targetWeight: { tr: 'Hedef Kilo', en: 'Target Weight' },
-  age: { tr: 'Ya\u015F', en: 'Age' },
+  age: { tr: 'Yaş', en: 'Age' },
   avatar: { tr: 'Avatar Emoji', en: 'Avatar Emoji' },
   partner: { tr: 'Partner', en: 'Partner' },
-  matched: { tr: 'E\u015Fle\u015Fti', en: 'Matched' },
-  notPaired: { tr: 'Hen\u00FCz e\u015Fle\u015Filmedi', en: 'Not paired yet' },
+  matched: { tr: 'Eşleşti', en: 'Matched' },
+  notPaired: { tr: 'Henüz eşleşilmedi', en: 'Not paired yet' },
   yourCode: { tr: 'Davet kodun', en: 'Your code' },
   findPartner: { tr: 'Partner Bul', en: 'Find Partner' },
-  unmatch: { tr: 'E\u015Fle\u015Fmeyi Kald\u0131r', en: 'Unmatch' },
-  unmatchConfirm: { tr: 'E\u015Fle\u015Fmeyi kald\u0131rmak istedi\u011Finden emin misin?', en: 'Are you sure you want to unmatch?' },
+  unmatch: { tr: 'Eşleşmeyi Kaldır', en: 'Unmatch' },
+  unmatchConfirm: { tr: 'Eşleşmeyi kaldırmak istediğinden emin misin?', en: 'Are you sure you want to unmatch?' },
   yes: { tr: 'Evet', en: 'Yes' },
-  no: { tr: 'Hay\u0131r', en: 'No' },
-  darkMode: { tr: 'Karanl\u0131k Mod', en: 'Dark Mode' },
-  darkModeDesc: { tr: 'G\u00F6r\u00FCn\u00FCm\u00FC de\u011Fi\u015Ftir', en: 'Toggle appearance' },
+  no: { tr: 'Hayır', en: 'No' },
+  darkMode: { tr: 'Karanlık Mod', en: 'Dark Mode' },
+  darkModeDesc: { tr: 'Görünümü değiştir', en: 'Toggle appearance' },
   language: { tr: 'Dil', en: 'Language' },
   languageDesc: { tr: 'Uygulama dili', en: 'App language' },
-  markAllRead: { tr: 'T\u00FCm\u00FCn\u00FC okundu i\u015Faretle', en: 'Mark all read' },
+  markAllRead: { tr: 'Tümünü okundu işaretle', en: 'Mark all read' },
   noNotifications: { tr: 'Bildirim yok', en: 'No notifications' },
-  logout: { tr: '\u00C7\u0131k\u0131\u015F Yap', en: 'Logout' },
-  version: { tr: 'S\u00FCr\u00FCm', en: 'Version' },
-  madeWith: { tr: 'Sevgiyle yap\u0131ld\u0131', en: 'Made with love' },
-  uploadPhoto: { tr: 'Foto\u011Fraf Y\u00FCkle', en: 'Upload Photo' },
+  logout: { tr: 'Çıkış Yap', en: 'Logout' },
+  version: { tr: 'Sürüm', en: 'Version' },
+  madeWith: { tr: 'Sevgiyle yapıldı', en: 'Made with love' },
+  uploadPhoto: { tr: 'Fotoğraf Yükle', en: 'Upload Photo' },
 };
 
 export default function SettingsPage() {
@@ -271,7 +271,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ═══ G\u00D6R\u00DCN\u00DCM (Appearance) ═══ */}
+        {/* ═══ GÖRÜNÜM (Appearance) ═══ */}
         <div>
           <h3 className="text-micro text-surface-400 uppercase tracking-wider font-semibold px-1 mb-2">
             {t('appearance')}
@@ -318,7 +318,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ═══ B\u0130LD\u0130R\u0130MLER (Notifications) ═══ */}
+        {/* ═══ BİLDİRİMLER (Notifications) ═══ */}
         <div>
           <h3 className="text-micro text-surface-400 uppercase tracking-wider font-semibold px-1 mb-2">
             <Bell size={12} className="inline mr-1" />{t('notifications')}

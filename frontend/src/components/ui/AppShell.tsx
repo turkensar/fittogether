@@ -10,9 +10,9 @@ import {
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Ana Sayfa', Icon: Home },
-  { href: '/meals', label: '\u00D6\u011F\u00FCnler', Icon: UtensilsCrossed },
+  { href: '/meals', label: 'Öğünler', Icon: UtensilsCrossed },
   { href: '/chat', label: 'Mesajlar', Icon: MessageCircle },
-  { href: '/progress', label: '\u0130lerleme', Icon: TrendingUp },
+  { href: '/progress', label: 'İlerleme', Icon: TrendingUp },
   { href: '/settings', label: 'Ayarlar', Icon: Settings },
 ];
 

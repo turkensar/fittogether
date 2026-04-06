@@ -86,7 +86,7 @@ export default function DashboardPage() {
 
   const loadData = () => {
     setError(null);
-    api.get<DashboardSummary>('/api/gamification/dashboard-summary').then(setSummary).catch(() => setError('Dashboard verileri y\u00FCklenemedi.'));
+    api.get<DashboardSummary>('/api/gamification/dashboard-summary').then(setSummary).catch(() => setError('Dashboard verileri yüklenemedi.'));
     api.get<Challenge[]>('/api/challenges/daily').then(setChallenges).catch(() => {});
     api.get('/api/gamification/streak').then((d: any) => setStreak(d)).catch(() => {});
     api.get('/api/tracking/water/today').then((d: any) => setWater(d)).catch(() => {});
@@ -132,7 +132,7 @@ export default function DashboardPage() {
   }
 
   if (authLoading || !summary) {
-    return <AppShell><Spinner label="Y\u00FCkleniyor..." /></AppShell>;
+    return <AppShell><Spinner label="Yükleniyor..." /></AppShell>;
   }
 
   const myPct = summary.my_goal > 0 ? (summary.my_calories / summary.my_goal) * 100 : 0;
@@ -147,7 +147,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-heading">Merhaba {user?.name}!</h1>
-            <p className="text-caption text-surface-400">Bug\u00FCn\u00FC verimli ge\u00E7irelim</p>
+            <p className="text-caption text-surface-400">Bugünü verimli geçirelim</p>
           </div>
           <div className="flex items-center gap-2">
             {weeklyReport && (
@@ -196,7 +196,7 @@ export default function DashboardPage() {
           <button onClick={() => router.push('/pairing')}
             className="w-full card flex items-center gap-3 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/10 dark:to-accent-900/10 border-primary-100 dark:border-primary-800">
             <Users size={18} className="text-primary-500" />
-            <span className="text-body font-medium text-primary-600 dark:text-primary-300">Partnerini bul, birlikte ba\u015Flay\u0131n</span>
+            <span className="text-body font-medium text-primary-600 dark:text-primary-300">Partnerini bul, birlikte başlayın</span>
           </button>
         )}
 
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                 <p className="text-caption font-medium">{summary.partner_name}</p>
                 <p className="text-micro text-surface-400">{summary.partner_calories} / {summary.partner_goal} kcal</p>
               </div>
-              <p className="text-caption text-accent-500 font-semibold">{summary.partner_remaining} kald\u0131</p>
+              <p className="text-caption text-accent-500 font-semibold">{summary.partner_remaining} kaldı</p>
             </div>
           )}
         </div>
@@ -289,7 +289,7 @@ export default function DashboardPage() {
           <button onClick={() => setChallengesOpen(o => !o)} className="w-full flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target size={16} className="text-primary-500" />
-              <span className="text-subheading">G\u00FCn\u00FCn Meydan Okumalar\u0131</span>
+              <span className="text-subheading">Günün Meydan Okumaları</span>
               <span className="text-micro bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 px-1.5 py-0.5 rounded-badge">
                 {challenges.filter(c => c.completed).length}/{challenges.length}
               </span>
@@ -302,7 +302,7 @@ export default function DashboardPage() {
                 <div key={ch.id} className={`flex items-center gap-3 p-2.5 rounded-btn ${ch.completed ? 'bg-success/5' : 'bg-surface-50 dark:bg-surface-700'}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0
                     ${ch.completed ? 'bg-success/10 text-success' : 'bg-primary-50 dark:bg-primary-900/30 text-primary-500'}`}>
-                    {ch.completed ? '\u2713' : ch.points}
+                    {ch.completed ? '✓' : ch.points}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`text-body font-medium truncate ${ch.completed ? 'line-through text-surface-400' : ''}`}>{ch.title}</p>
@@ -325,17 +325,17 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2">
               <AlertTriangle size={14} className="text-orange-400" />
               <div>
-                <p className="text-body font-medium text-orange-700 dark:text-orange-300">Ufak bir kayma m\u0131?</p>
-                <p className="text-micro text-surface-400">Sorun de\u011Fil, d\u00FCr\u00FCst ol</p>
+                <p className="text-body font-medium text-orange-700 dark:text-orange-300">Ufak bir kayma mı?</p>
+                <p className="text-micro text-surface-400">Sorun değil, dürüst ol</p>
               </div>
             </div>
             <button onClick={breakDiet} className="bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-300 px-3 py-1.5 rounded-btn text-caption font-semibold transition-all active:scale-[0.97]">
-              \u0130tiraf Et
+              İtiraf Et
             </button>
           </div>
           {dietBreakResult && (
             <div className="mt-2.5 p-2.5 bg-white dark:bg-surface-800 rounded-btn">
-              <p className="text-caption font-medium text-surface-500">E\u011Flenceli cezan:</p>
+              <p className="text-caption font-medium text-surface-500">Eğlenceli cezan:</p>
               <p className="text-body text-accent-600 dark:text-accent-400 mt-0.5">{dietBreakResult}</p>
             </div>
           )}
@@ -356,7 +356,7 @@ export default function DashboardPage() {
               onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-heading flex items-center gap-2">
-                  <BarChart3 size={18} className="text-primary-500" /> Haftal\u0131k Rapor
+                  <BarChart3 size={18} className="text-primary-500" /> Haftalık Rapor
                 </h2>
                 <button onClick={() => setShowReport(false)} className="text-surface-400 hover:text-surface-600">
                   <X size={18} />
@@ -382,15 +382,15 @@ export default function DashboardPage() {
                       <p className="text-body font-bold">{weeklyReport.total_calories.toLocaleString()} kcal</p>
                     </div>
                     <div>
-                      <p className="text-micro text-surface-400">G\u00FCnl\u00FCk Ort.</p>
+                      <p className="text-micro text-surface-400">Günlük Ort.</p>
                       <p className="text-body font-bold">{weeklyReport.avg_calories} kcal</p>
                     </div>
                   </div>
                   {weeklyReport.avg_calories > 0 && (
                     <p className={`text-micro mt-1 font-semibold ${weeklyReport.avg_calories <= weeklyReport.calorie_goal ? 'text-success' : 'text-danger'}`}>
                       {weeklyReport.avg_calories <= weeklyReport.calorie_goal
-                        ? `Hedefin alt\u0131nda kaldin!`
-                        : `Hedefin ${weeklyReport.avg_calories - weeklyReport.calorie_goal} kcal \u00FCst\u00FCnde`}
+                        ? `Hedefin altında kaldin!`
+                        : `Hedefin ${weeklyReport.avg_calories - weeklyReport.calorie_goal} kcal üstünde`}
                     </p>
                   )}
                 </div>
@@ -399,7 +399,7 @@ export default function DashboardPage() {
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-btn p-3">
                   <div className="flex items-center gap-2 mb-1">
                     <Droplets size={14} className="text-blue-500" />
-                    <span className="text-caption font-semibold">Su T\u00FCketimi</span>
+                    <span className="text-caption font-semibold">Su Tüketimi</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -407,7 +407,7 @@ export default function DashboardPage() {
                       <p className="text-body font-bold">{(weeklyReport.total_water_ml / 1000).toFixed(1)}L</p>
                     </div>
                     <div>
-                      <p className="text-micro text-surface-400">G\u00FCnl\u00FCk Ort.</p>
+                      <p className="text-micro text-surface-400">Günlük Ort.</p>
                       <p className="text-body font-bold">{(weeklyReport.avg_water_ml / 1000).toFixed(1)}L</p>
                     </div>
                   </div>
@@ -419,13 +419,13 @@ export default function DashboardPage() {
                     {weeklyReport.weight_change <= 0
                       ? <TrendingDown size={14} className="text-green-500" />
                       : <TrendingUp size={14} className="text-red-500" />}
-                    <span className="text-caption font-semibold">Kilo De\u011Fi\u015Fimi</span>
+                    <span className="text-caption font-semibold">Kilo Değişimi</span>
                   </div>
                   <p className="text-body font-bold">
                     {weeklyReport.weight_change > 0 ? '+' : ''}{weeklyReport.weight_change} kg
                   </p>
                   <p className="text-micro text-surface-400">
-                    {weeklyReport.weight_change < 0 ? 'Harika gidiyorsun!' : weeklyReport.weight_change === 0 ? 'Stabil kald\u0131n' : 'Dikkatli olal\u0131m'}
+                    {weeklyReport.weight_change < 0 ? 'Harika gidiyorsun!' : weeklyReport.weight_change === 0 ? 'Stabil kaldın' : 'Dikkatli olalım'}
                   </p>
                 </div>
 
@@ -438,7 +438,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <p className="text-body font-bold text-primary-500">{weeklyReport.active_days}/7</p>
-                      <p className="text-micro text-surface-400">Aktif G\u00FCn</p>
+                      <p className="text-micro text-surface-400">Aktif Gün</p>
                     </div>
                     <div>
                       <p className="text-body font-bold text-yellow-500">{weeklyReport.challenges_completed}</p>
