@@ -10,7 +10,7 @@ import PageError from '@/components/ui/PageError';
 import { WeightProgress, Badge as BadgeType } from '@/types';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell,
+  BarChart, Bar, Cell, ReferenceLine,
 } from 'recharts';
 import {
   TrendingUp, Scale, Trophy, Award, Users, Loader2, Lock, X, Droplets,
@@ -33,6 +33,7 @@ export default function ProgressPage() {
   const [weeklyWater, setWeeklyWater] = useState<WeeklyWater[]>([]);
   const [selectedBadge, setSelectedBadge] = useState<BadgeType | null>(null);
   const [confettiBadgeId, setConfettiBadgeId] = useState<string | null>(null);
+  const [weightPeriod, setWeightPeriod] = useState<'week' | 'month'>('week');
   const [expandedSections, setExpandedSections] = useState({
     weight: true, calories: true, water: true, badges: true,
   });
@@ -94,7 +95,12 @@ export default function ProgressPage() {
     return <AppShell><Spinner label="Yükleniyor..." /></AppShell>;
   }
 
-  const chartData = myProgress.logs.map(l => ({
+  const now = new Date();
+  const cutoff = weightPeriod === 'week'
+    ? new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
+    : new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  const filteredLogs = myProgress.logs.filter(l => new Date(l.date) >= cutoff);
+  const chartData = filteredLogs.map(l => ({
     date: new Date(l.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }),
     weight: l.weight,
   }));
@@ -151,25 +157,46 @@ export default function ProgressPage() {
         </div>
 
         {/* Weight chart */}
-        {chartData.length > 1 && expandedSections.weight && (
+        {expandedSections.weight && (
           <div className="card">
-            <h3 className="section-title mb-3">Kilo Değişim Grafiği</h3>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} domain={['dataMin - 2', 'dataMax + 2']} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    formatter={(value: number) => [`${value} kg`, 'Kilo']}
-                  />
-                  <Line type="monotone" dataKey="weight" stroke="#7c5cfc" strokeWidth={2.5}
-                    dot={{ fill: '#7c5cfc', r: 4, strokeWidth: 2, stroke: '#fff' }}
-                    activeDot={{ r: 6, fill: '#7c5cfc', stroke: '#fff', strokeWidth: 2 }} />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="section-title">Kilo Değişim Grafiği</h3>
+              <div className="flex bg-surface-100 dark:bg-surface-700 rounded-btn p-0.5">
+                <button onClick={() => setWeightPeriod('week')}
+                  className={`px-3 py-1 rounded-btn text-micro font-semibold transition-all ${weightPeriod === 'week' ? 'bg-white dark:bg-surface-600 text-primary-600 shadow-sm' : 'text-surface-400'}`}>
+                  Hafta
+                </button>
+                <button onClick={() => setWeightPeriod('month')}
+                  className={`px-3 py-1 rounded-btn text-micro font-semibold transition-all ${weightPeriod === 'month' ? 'bg-white dark:bg-surface-600 text-primary-600 shadow-sm' : 'text-surface-400'}`}>
+                  Ay
+                </button>
+              </div>
             </div>
+            {chartData.length > 1 ? (
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} domain={['dataMin - 2', 'dataMax + 2']} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      formatter={(value: number) => [`${value} kg`, 'Kilo']}
+                    />
+                    <ReferenceLine y={myProgress.target_weight} stroke="#10b981" strokeDasharray="6 4" strokeWidth={1.5}
+                      label={{ value: `Hedef: ${myProgress.target_weight}kg`, position: 'right', fontSize: 10, fill: '#10b981' }} />
+                    <Line type="monotone" dataKey="weight" stroke="#7c5cfc" strokeWidth={2.5}
+                      dot={{ fill: '#7c5cfc', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                      activeDot={{ r: 6, fill: '#7c5cfc', stroke: '#fff', strokeWidth: 2 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Scale size={28} className="mx-auto mb-2 text-surface-300" />
+                <p className="text-caption text-surface-400">Kilo kaydı eklendikçe grafiğin burada oluşacak</p>
+              </div>
+            )}
           </div>
         )}
 

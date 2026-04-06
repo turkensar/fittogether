@@ -124,6 +124,22 @@ def delete_meal(meal_id: str, user: User = Depends(get_current_user), db: Sessio
     return {"message": "Meal deleted"}
 
 
+@router.get("/meal-dates")
+def meal_dates(
+    start: date,
+    end: date,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return list of dates that have at least one meal."""
+    rows = db.query(func.date(Meal.created_at)).filter(
+        Meal.user_id == user.id,
+        func.date(Meal.created_at) >= start,
+        func.date(Meal.created_at) <= end,
+    ).distinct().all()
+    return [r[0].isoformat() for r in rows]
+
+
 @router.get("/weekly-calories")
 def weekly_calories(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     today = date.today()

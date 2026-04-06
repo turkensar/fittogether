@@ -9,6 +9,7 @@ import { Meal, Food } from '@/types';
 import {
   Plus, Search, X, Trash2, Sunrise, Sun, Moon, Apple, UtensilsCrossed, Loader2,
   Sparkles, Camera, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplet,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
 interface MealItemForm {
@@ -67,6 +68,28 @@ const POPULAR_FOODS = [
   { name: 'Ayran', cal: 30, p: 1.5, c: 2, f: 1.5, portion: 200, category: 'dairy' },
 ];
 
+const DAY_NAMES = ['Pz', 'Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct'];
+
+function getWeekDays(weekOffset: number): Date[] {
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0=Sun
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7) + weekOffset * 7);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+}
+
+function dateToStr(d: Date): string {
+  return d.toISOString().split('T')[0];
+}
+
+function isToday(d: Date): boolean {
+  return dateToStr(d) === dateToStr(new Date());
+}
+
 export default function MealsPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -81,15 +104,34 @@ export default function MealsPage() {
   const [showPopular, setShowPopular] = useState(true);
   const [mealPhoto, setMealPhoto] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [selectedDate, setSelectedDate] = useState(dateToStr(new Date()));
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [mealDates, setMealDates] = useState<Set<string>>(new Set());
+
+  const weekDays = getWeekDays(weekOffset);
 
   useEffect(() => {
     if (!authLoading && !user) { router.push('/login'); return; }
-    if (user) loadMeals();
+    if (user) loadMeals(selectedDate);
   }, [user, authLoading]);
 
-  const loadMeals = () => {
-    const today = new Date().toISOString().split('T')[0];
-    api.get<Meal[]>(`/api/meals?target_date=${today}`).then(setMeals);
+  useEffect(() => {
+    if (!user) return;
+    const start = dateToStr(weekDays[0]);
+    const end = dateToStr(weekDays[6]);
+    api.get<string[]>(`/api/meals/meal-dates?start=${start}&end=${end}`)
+      .then(dates => setMealDates(new Set(dates)))
+      .catch(() => {});
+  }, [user, weekOffset]);
+
+  const loadMeals = (date: string) => {
+    api.get<Meal[]>(`/api/meals?target_date=${date}`).then(setMeals);
+  };
+
+  const selectDate = (d: Date) => {
+    const ds = dateToStr(d);
+    setSelectedDate(ds);
+    loadMeals(ds);
   };
 
   const searchFoods = useCallback(async (q: string) => {
@@ -187,14 +229,19 @@ export default function MealsPage() {
         })),
       });
       setShowForm(false); setTitle(''); setItems([]); setMealPhoto(null);
-      loadMeals();
+      loadMeals(selectedDate);
+      // Refresh meal dates for calendar dots
+      const start = dateToStr(weekDays[0]);
+      const end = dateToStr(weekDays[6]);
+      api.get<string[]>(`/api/meals/meal-dates?start=${start}&end=${end}`)
+        .then(dates => setMealDates(new Set(dates))).catch(() => {});
     } catch {}
     setLoading(false);
   };
 
   const deleteMeal = async (id: string) => {
     await api.delete(`/api/meals/${id}`);
-    loadMeals();
+    loadMeals(selectedDate);
   };
 
   const totalCalories = meals.reduce((s, m) => s + m.total_calories, 0);
@@ -228,6 +275,43 @@ export default function MealsPage() {
               <div className={`h-1.5 rounded-full transition-all ${pct > 100 ? 'bg-danger' : 'bg-primary-500'}`}
                 style={{ width: `${pct}%` }} />
             </div>
+          </div>
+        </div>
+
+        {/* Weekly calendar strip */}
+        <div className="card p-2">
+          <div className="flex items-center justify-between mb-1">
+            <button onClick={() => setWeekOffset(w => w - 1)} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-100 dark:hover:bg-surface-700">
+              <ChevronLeft size={16} className="text-surface-400" />
+            </button>
+            <span className="text-micro text-surface-400">
+              {weekDays[0].toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} - {weekDays[6].toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+            </span>
+            <button onClick={() => setWeekOffset(w => Math.min(0, w + 1))} disabled={weekOffset >= 0}
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30">
+              <ChevronRight size={16} className="text-surface-400" />
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {weekDays.map(d => {
+              const ds = dateToStr(d);
+              const selected = ds === selectedDate;
+              const today = isToday(d);
+              const hasMeals = mealDates.has(ds);
+              return (
+                <button key={ds} onClick={() => selectDate(d)}
+                  className={`flex flex-col items-center py-1.5 rounded-btn transition-all
+                    ${selected ? 'bg-primary-500 text-white' : today ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-surface-50 dark:hover:bg-surface-700'}`}>
+                  <span className={`text-[10px] font-medium ${selected ? 'text-white/80' : 'text-surface-400'}`}>
+                    {DAY_NAMES[d.getDay()]}
+                  </span>
+                  <span className={`text-caption font-bold ${selected ? '' : today ? 'text-primary-500' : ''}`}>
+                    {d.getDate()}
+                  </span>
+                  <span className={`w-1 h-1 rounded-full mt-0.5 ${hasMeals ? (selected ? 'bg-white' : 'bg-primary-500') : 'bg-transparent'}`} />
+                </button>
+              );
+            })}
           </div>
         </div>
 
