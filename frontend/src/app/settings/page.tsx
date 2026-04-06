@@ -84,8 +84,10 @@ export default function SettingsPage() {
   }, [user, authLoading]);
 
   const toggleDark = () => {
-    document.documentElement.classList.toggle('dark');
-    setDarkMode(d => !d);
+    const next = !darkMode;
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('ft-dark', String(next));
+    setDarkMode(next);
   };
 
   const switchLang = (l: Lang) => {

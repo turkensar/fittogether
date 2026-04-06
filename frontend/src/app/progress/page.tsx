@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import AppShell from '@/components/ui/AppShell';
+import Spinner from '@/components/ui/Spinner';
+import PageError from '@/components/ui/PageError';
 import { WeightProgress, Badge as BadgeType } from '@/types';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -35,26 +37,30 @@ export default function ProgressPage() {
     weight: true, calories: true, water: true, badges: true,
   });
 
+  const [error, setError] = useState<string | null>(null);
+
+  const loadData = () => {
+    setError(null);
+    api.get<WeightProgress>('/api/tracking/weight/progress').then(setMyProgress).catch(() => setError('\u0130lerleme verileri y\u00FCklenemedi.'));
+    api.get('/api/tracking/weight/partner-progress').then(setPartnerProgress).catch(() => {});
+    api.get<BadgeType[]>('/api/gamification/badges').then(data => {
+      setBadges(data);
+      const now = Date.now();
+      data.forEach(b => {
+        if (b.earned_at) {
+          const earned = new Date(b.earned_at).getTime();
+          if (now - earned < 60000) setConfettiBadgeId(b.id);
+        }
+      });
+    }).catch(() => {});
+    api.get('/api/gamification/leaderboard').then(setLeaderboard).catch(() => {});
+    api.get<WeeklyCalorie[]>('/api/meals/weekly-calories').then(setWeeklyCalories).catch(() => {});
+    api.get<WeeklyWater[]>('/api/tracking/water/weekly').then(setWeeklyWater).catch(() => {});
+  };
+
   useEffect(() => {
     if (!authLoading && !user) { router.push('/login'); return; }
-    if (user) {
-      api.get<WeightProgress>('/api/tracking/weight/progress').then(setMyProgress);
-      api.get('/api/tracking/weight/partner-progress').then(setPartnerProgress).catch(() => {});
-      api.get<BadgeType[]>('/api/gamification/badges').then(data => {
-        setBadges(data);
-        // Trigger confetti for recently earned badges (within last minute)
-        const now = Date.now();
-        data.forEach(b => {
-          if (b.earned_at) {
-            const earned = new Date(b.earned_at).getTime();
-            if (now - earned < 60000) setConfettiBadgeId(b.id);
-          }
-        });
-      });
-      api.get('/api/gamification/leaderboard').then(setLeaderboard);
-      api.get<WeeklyCalorie[]>('/api/meals/weekly-calories').then(setWeeklyCalories);
-      api.get<WeeklyWater[]>('/api/tracking/water/weekly').then(setWeeklyWater);
-    }
+    if (user) loadData();
   }, [user, authLoading]);
 
   const logWeight = async (e: React.FormEvent) => {
@@ -80,8 +86,12 @@ export default function ProgressPage() {
     return days[d.getDay()];
   };
 
+  if (error) {
+    return <PageError message={error} onRetry={loadData} />;
+  }
+
   if (authLoading || !myProgress) {
-    return <AppShell><div className="flex justify-center pt-20"><Loader2 className="w-8 h-8 animate-spin text-primary-500" /></div></AppShell>;
+    return <AppShell><Spinner label="Y\u00FCkleniyor..." /></AppShell>;
   }
 
   const chartData = myProgress.logs.map(l => ({

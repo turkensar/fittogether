@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import AppShell from '@/components/ui/AppShell';
+import Spinner from '@/components/ui/Spinner';
+import PageError from '@/components/ui/PageError';
 import { DashboardSummary, Challenge, PairingStatus } from '@/types';
 import {
   Flame, Trophy, CalendarOff, Droplets, Target, ChevronDown, ChevronUp,
-  AlertTriangle, Plus, Users, Loader2, Bell, X, TrendingDown, TrendingUp,
+  AlertTriangle, Plus, Users, Bell, X, TrendingDown, TrendingUp,
   Zap, UtensilsCrossed, BarChart3,
 } from 'lucide-react';
 
@@ -80,19 +82,23 @@ export default function DashboardPage() {
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
   const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
   const [showReport, setShowReport] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadData = () => {
+    setError(null);
+    api.get<DashboardSummary>('/api/gamification/dashboard-summary').then(setSummary).catch(() => setError('Dashboard verileri y\u00FCklenemedi.'));
+    api.get<Challenge[]>('/api/challenges/daily').then(setChallenges).catch(() => {});
+    api.get('/api/gamification/streak').then((d: any) => setStreak(d)).catch(() => {});
+    api.get('/api/tracking/water/today').then((d: any) => setWater(d)).catch(() => {});
+    api.get('/api/tracking/cheat-days/weekly').then((d: any) => setCheatDays(d)).catch(() => {});
+    api.get<PairingStatus>('/api/pairing/status').then(setPairing).catch(() => {});
+    api.get<Reminder[]>('/api/social/reminders').then(setReminders).catch(() => {});
+    api.get<WeeklyReport>('/api/gamification/weekly-report').then(setWeeklyReport).catch(() => {});
+  };
 
   useEffect(() => {
     if (!authLoading && !user) { router.push('/login'); return; }
-    if (user) {
-      api.get<DashboardSummary>('/api/gamification/dashboard-summary').then(setSummary);
-      api.get<Challenge[]>('/api/challenges/daily').then(setChallenges);
-      api.get('/api/gamification/streak').then((d: any) => setStreak(d));
-      api.get('/api/tracking/water/today').then((d: any) => setWater(d));
-      api.get('/api/tracking/cheat-days/weekly').then((d: any) => setCheatDays(d));
-      api.get<PairingStatus>('/api/pairing/status').then(setPairing);
-      api.get<Reminder[]>('/api/social/reminders').then(setReminders).catch(() => {});
-      api.get<WeeklyReport>('/api/gamification/weekly-report').then(setWeeklyReport).catch(() => {});
-    }
+    if (user) loadData();
   }, [user, authLoading, router]);
 
   const completeChallenge = async (id: string) => {
@@ -121,8 +127,12 @@ export default function DashboardPage() {
     setDismissedReminders(prev => new Set(prev).add(type));
   };
 
+  if (error) {
+    return <PageError message={error} onRetry={loadData} />;
+  }
+
   if (authLoading || !summary) {
-    return <AppShell><div className="flex justify-center pt-20"><Loader2 className="w-8 h-8 animate-spin text-primary-500" /></div></AppShell>;
+    return <AppShell><Spinner label="Y\u00FCkleniyor..." /></AppShell>;
   }
 
   const myPct = summary.my_goal > 0 ? (summary.my_calories / summary.my_goal) * 100 : 0;
