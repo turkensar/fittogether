@@ -120,6 +120,21 @@ def dashboard_summary(user: User = Depends(get_current_user), db: Session = Depe
         Meal.user_id == user.id, func.date(Meal.created_at) == today
     ).scalar()
 
+    # Get today's macro totals from meal items
+    from app.models.meal import MealItem
+    my_meals_today = db.query(Meal.id).filter(
+        Meal.user_id == user.id, func.date(Meal.created_at) == today
+    ).subquery()
+    my_protein = db.query(func.coalesce(func.sum(MealItem.protein), 0)).filter(
+        MealItem.meal_id.in_(my_meals_today)
+    ).scalar()
+    my_carbs = db.query(func.coalesce(func.sum(MealItem.carbs), 0)).filter(
+        MealItem.meal_id.in_(my_meals_today)
+    ).scalar()
+    my_fat = db.query(func.coalesce(func.sum(MealItem.fat), 0)).filter(
+        MealItem.meal_id.in_(my_meals_today)
+    ).scalar()
+
     my_score = get_total_score(db, user.id)
 
     result = {
@@ -127,6 +142,9 @@ def dashboard_summary(user: User = Depends(get_current_user), db: Session = Depe
         "my_goal": user.daily_calorie_goal,
         "my_remaining": max(0, user.daily_calorie_goal - my_cals),
         "my_score": my_score,
+        "my_protein": round(my_protein, 1),
+        "my_carbs": round(my_carbs, 1),
+        "my_fat": round(my_fat, 1),
         "partner_calories": 0,
         "partner_goal": 0,
         "partner_remaining": 0,

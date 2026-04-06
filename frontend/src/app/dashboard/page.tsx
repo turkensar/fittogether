@@ -137,8 +137,12 @@ export default function DashboardPage() {
 
   const myPct = summary.my_goal > 0 ? (summary.my_calories / summary.my_goal) * 100 : 0;
   const partnerPct = summary.partner_goal > 0 ? (summary.partner_calories / summary.partner_goal) * 100 : 0;
-  const waterPct = Math.min(100, (water.my_water_ml / 2000) * 100);
+  const waterGoal = 2000;
+  const waterPct = Math.min(100, (water.my_water_ml / waterGoal) * 100);
+  const waterOver = water.my_water_ml > waterGoal;
+  const waterExcess = ((water.my_water_ml - waterGoal) / 1000).toFixed(1);
   const activeReminders = reminders.filter(r => !dismissedReminders.has(r.type));
+  const [notifExpanded, setNotifExpanded] = useState(false);
 
   return (
     <AppShell>
@@ -165,10 +169,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Reminders / Notifications */}
+        {/* Reminders / Notifications — compact stack */}
         {activeReminders.length > 0 && (
           <div className="space-y-1.5">
-            {activeReminders.map(r => {
+            {(notifExpanded ? activeReminders : activeReminders.slice(0, 1)).map(r => {
               const RIcon = REMINDER_ICONS[r.icon] || Bell;
               const colors = r.priority === 'high'
                 ? 'bg-danger/5 border-danger/10 text-danger'
@@ -188,6 +192,18 @@ export default function DashboardPage() {
                 </div>
               );
             })}
+            {activeReminders.length > 1 && !notifExpanded && (
+              <button onClick={() => setNotifExpanded(true)}
+                className="w-full text-center text-micro text-surface-400 hover:text-surface-600 py-1 bg-surface-50 dark:bg-surface-700 rounded-btn">
+                +{activeReminders.length - 1} bildirim daha
+              </button>
+            )}
+            {activeReminders.length > 1 && notifExpanded && (
+              <button onClick={() => setNotifExpanded(false)}
+                className="w-full text-center text-micro text-surface-400 hover:text-surface-600 py-1 bg-surface-50 dark:bg-surface-700 rounded-btn">
+                Daralt
+              </button>
+            )}
           </div>
         )}
 
@@ -217,9 +233,9 @@ export default function DashboardPage() {
                 <p className="text-lg font-bold text-primary-500">{summary.my_remaining} kcal</p>
               </div>
               <div className="space-y-1.5">
-                <MacroBar label="P" value={0} max={100} color="#7c5cfc" />
-                <MacroBar label="K" value={0} max={100} color="#f59e0b" />
-                <MacroBar label="Y" value={0} max={100} color="#ec4899" />
+                <MacroBar label="P" value={Math.round(summary.my_protein || 0)} max={150} color="#3b82f6" />
+                <MacroBar label="K" value={Math.round(summary.my_carbs || 0)} max={250} color="#f59e0b" />
+                <MacroBar label="Y" value={Math.round(summary.my_fat || 0)} max={80} color="#eab308" />
               </div>
             </div>
           </div>
@@ -245,15 +261,20 @@ export default function DashboardPage() {
         <div className="card">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Droplets size={16} className="text-info" />
+              <Droplets size={16} className={waterOver ? 'text-green-500' : 'text-info'} />
               <span className="text-subheading">Su</span>
             </div>
-            <span className="text-caption text-surface-400">{(water.my_water_ml / 1000).toFixed(1)}L / 2L</span>
+            <span className="text-caption text-surface-400">{(water.my_water_ml / 1000).toFixed(1)}L / {waterGoal / 1000}L</span>
           </div>
-          <div className="w-full bg-surface-100 dark:bg-surface-700 rounded-full h-2 mb-2.5">
-            <div className="bg-info h-2 rounded-full transition-all duration-500" style={{ width: `${waterPct}%` }} />
+          <div className="w-full bg-surface-100 dark:bg-surface-700 rounded-full h-2 mb-1">
+            <div className={`h-2 rounded-full transition-all duration-500 ${waterOver ? 'bg-green-500' : 'bg-info'}`} style={{ width: `${waterPct}%` }} />
           </div>
-          <div className="flex gap-2">
+          {waterOver && (
+            <p className="text-micro text-green-600 dark:text-green-400 font-semibold mb-1.5">
+              +{waterExcess}L fazla — harika gidiyorsun!
+            </p>
+          )}
+          <div className="flex gap-2 mt-1.5">
             {[250, 500, 750].map(ml => (
               <button key={ml} onClick={() => addWater(ml)} className="btn-secondary text-caption flex-1 py-1.5 px-2">
                 <Plus size={12} className="inline mr-0.5" />{ml}ml

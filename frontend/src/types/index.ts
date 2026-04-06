@@ -104,6 +104,9 @@ export interface DashboardSummary {
   my_goal: number;
   my_remaining: number;
   my_score: number;
+  my_protein: number;
+  my_carbs: number;
+  my_fat: number;
   partner_calories: number;
   partner_goal: number;
   partner_remaining: number;
