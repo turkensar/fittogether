@@ -68,6 +68,8 @@ class BadgeResponse(BaseModel):
     name: str
     description: str
     emoji: str
+    requirement: str = ""
+    points_required: int = 0
     earned_at: datetime | None = None
 
     class Config:

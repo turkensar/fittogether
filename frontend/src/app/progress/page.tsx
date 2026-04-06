@@ -10,11 +10,11 @@ import PageError from '@/components/ui/PageError';
 import { WeightProgress, Badge as BadgeType } from '@/types';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell, ReferenceLine,
+  BarChart, Bar, Cell, ReferenceLine, LabelList,
 } from 'recharts';
 import {
   TrendingUp, Scale, Trophy, Award, Users, Loader2, Lock, X, Droplets,
-  Flame, Star, ChevronDown, ChevronUp,
+  Flame, Star, ChevronDown, ChevronUp, Target,
 } from 'lucide-react';
 
 interface WeeklyCalorie { date: string; calories: number; }
@@ -211,11 +211,12 @@ export default function ProgressPage() {
               </div>
             </button>
             {expandedSections.calories && (
-              <div className="h-44">
+              <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyCalories.map(d => ({
                     day: formatDay(d.date),
                     calories: d.calories,
+                    label: d.calories > 0 ? d.calories : '–',
                   }))}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
                     <XAxis dataKey="day" tick={{ fontSize: 11 }} />
@@ -224,7 +225,10 @@ export default function ProgressPage() {
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                       formatter={(value: number) => [`${value} kcal`, 'Kalori']}
                     />
+                    <ReferenceLine y={calGoal} stroke="#f59e0b" strokeDasharray="6 4" strokeWidth={1.5}
+                      label={{ value: `Hedef: ${calGoal}`, position: 'right', fontSize: 9, fill: '#f59e0b' }} />
                     <Bar dataKey="calories" radius={[6, 6, 0, 0]} maxBarSize={36}>
+                      <LabelList dataKey="label" position="top" fontSize={9} fill="#a1a1aa" />
                       {weeklyCalories.map((d, i) => (
                         <Cell key={i} fill={d.calories > calGoal ? '#ef4444' : d.calories > 0 ? '#7c5cfc' : '#e4e4e7'} />
                       ))}
@@ -240,6 +244,9 @@ export default function ProgressPage() {
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-sm bg-danger inline-block" /> Hedef üstü
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-surface-200 inline-block" /> Veri yok
                 </span>
               </div>
             )}
@@ -398,32 +405,68 @@ export default function ProgressPage() {
         </div>
 
         {/* Badge detail modal */}
-        {selectedBadge && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6" onClick={() => setSelectedBadge(null)}>
-            <div className="bg-white dark:bg-surface-800 rounded-card w-full max-w-xs p-6 text-center shadow-xl" onClick={e => e.stopPropagation()}>
-              <button onClick={() => setSelectedBadge(null)} className="absolute top-3 right-3 text-surface-400">
-                <X size={18} />
-              </button>
-              <div className={`text-4xl mb-3 ${!selectedBadge.earned_at ? 'grayscale opacity-50' : ''}`}>
-                {selectedBadge.emoji}
-              </div>
-              <h3 className="text-body font-bold mb-1">{selectedBadge.name}</h3>
-              <p className="text-caption text-surface-500 mb-4">{selectedBadge.description}</p>
+        {selectedBadge && (() => {
+          const currentScore = leaderboard?.my_score || 0;
+          const progressPct = selectedBadge.points_required > 0
+            ? Math.min(100, (currentScore / selectedBadge.points_required) * 100)
+            : selectedBadge.earned_at ? 100 : 0;
+          return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6" onClick={() => setSelectedBadge(null)}>
+              <div className="bg-white dark:bg-surface-800 rounded-card w-full max-w-xs p-6 text-center shadow-xl relative" onClick={e => e.stopPropagation()}>
+                <button onClick={() => setSelectedBadge(null)} className="absolute top-3 right-3 text-surface-400">
+                  <X size={18} />
+                </button>
 
-              {selectedBadge.earned_at ? (
-                <div className="bg-success/10 text-success rounded-btn px-4 py-2 text-caption font-semibold">
-                  <Star size={12} className="inline mr-1 fill-current" />
-                  {new Date(selectedBadge.earned_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} tarihinde kazanıldı
+                {/* Earned glow effect */}
+                {selectedBadge.earned_at && (
+                  <div className="absolute inset-0 rounded-card overflow-hidden pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-b from-primary-500/5 to-transparent animate-pulse" />
+                  </div>
+                )}
+
+                <div className={`text-4xl mb-3 ${!selectedBadge.earned_at ? 'grayscale opacity-50' : ''}`}>
+                  {selectedBadge.emoji}
                 </div>
-              ) : (
-                <div className="bg-surface-50 dark:bg-surface-700 rounded-btn px-4 py-2 text-caption text-surface-400">
-                  <Lock size={12} className="inline mr-1" />
-                  Henüz kazanılmadı
-                </div>
-              )}
+                <h3 className="text-body font-bold mb-1">{selectedBadge.name}</h3>
+                <p className="text-caption text-surface-500 mb-2">{selectedBadge.description}</p>
+
+                {/* Requirement */}
+                {selectedBadge.requirement && (
+                  <p className="text-micro text-surface-400 mb-3">
+                    <Target size={10} className="inline mr-1" />
+                    {selectedBadge.requirement}
+                  </p>
+                )}
+
+                {/* Progress bar */}
+                {selectedBadge.points_required > 0 && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-micro text-surface-400 mb-1">
+                      <span>İlerleme</span>
+                      <span>{Math.min(currentScore, selectedBadge.points_required)} / {selectedBadge.points_required} puan</span>
+                    </div>
+                    <div className="w-full bg-surface-100 dark:bg-surface-700 rounded-full h-2.5">
+                      <div className={`h-2.5 rounded-full transition-all duration-700 ${selectedBadge.earned_at ? 'bg-success' : 'bg-primary-500'}`}
+                        style={{ width: `${progressPct}%` }} />
+                    </div>
+                  </div>
+                )}
+
+                {selectedBadge.earned_at ? (
+                  <div className="bg-success/10 text-success rounded-btn px-4 py-2 text-caption font-semibold">
+                    <Star size={12} className="inline mr-1 fill-current" />
+                    {new Date(selectedBadge.earned_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} tarihinde kazanıldı
+                  </div>
+                ) : (
+                  <div className="bg-surface-50 dark:bg-surface-700 rounded-btn px-4 py-2 text-caption text-surface-400">
+                    <Lock size={12} className="inline mr-1" />
+                    Henüz kazanılmadı
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </AppShell>
   );

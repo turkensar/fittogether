@@ -11,7 +11,7 @@ import { DashboardSummary, Challenge, PairingStatus } from '@/types';
 import {
   Flame, Trophy, CalendarOff, Droplets, Target, ChevronDown, ChevronUp,
   AlertTriangle, Plus, Users, Bell, X, TrendingDown, TrendingUp,
-  Zap, UtensilsCrossed, BarChart3,
+  Zap, UtensilsCrossed, BarChart3, Calendar,
 } from 'lucide-react';
 
 interface Reminder {
@@ -82,6 +82,8 @@ export default function DashboardPage() {
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
   const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
   const [showReport, setShowReport] = useState(false);
+  const [showStreak, setShowStreak] = useState(false);
+  const [heatmap, setHeatmap] = useState<{ active_dates: string[]; start: string; end: string; longest_streak: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = () => {
@@ -288,11 +290,14 @@ export default function DashboardPage() {
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="card text-center py-2.5 px-2">
+          <button onClick={() => {
+            setShowStreak(true);
+            if (!heatmap) api.get<typeof heatmap>('/api/gamification/streak-heatmap?days=90').then(setHeatmap).catch(() => {});
+          }} className="card text-center py-2.5 px-2 active:scale-95 transition-transform">
             <Flame size={16} className="mx-auto mb-1 text-orange-500" />
             <p className="stat-value text-base">{streak.couple_streak}</p>
             <p className="stat-label">Seri</p>
-          </div>
+          </button>
           <div className="card text-center py-2.5 px-2">
             <Trophy size={16} className="mx-auto mb-1 text-yellow-500" />
             <p className="stat-value text-base">{summary.couple_score}</p>
@@ -474,6 +479,87 @@ export default function DashboardPage() {
               </div>
 
               <button onClick={() => setShowReport(false)} className="btn-primary w-full mt-4">Tamam</button>
+            </div>
+          </div>
+        )}
+
+        {/* Streak Heatmap Modal */}
+        {showStreak && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setShowStreak(false)}>
+            <div className="bg-white dark:bg-surface-800 rounded-card w-full max-w-sm p-5 shadow-xl max-h-[85vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-heading flex items-center gap-2">
+                  <Flame size={18} className="text-orange-500" /> Seri Haritası
+                </h2>
+                <button onClick={() => setShowStreak(false)} className="text-surface-400 hover:text-surface-600">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex gap-4 mb-4">
+                <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 rounded-btn p-3 text-center">
+                  <p className="text-lg font-bold text-orange-500">{streak.my_streak}</p>
+                  <p className="text-micro text-surface-400">Mevcut Seri</p>
+                </div>
+                <div className="flex-1 bg-primary-50 dark:bg-primary-900/20 rounded-btn p-3 text-center">
+                  <p className="text-lg font-bold text-primary-500">{heatmap?.longest_streak || 0}</p>
+                  <p className="text-micro text-surface-400">En Uzun Seri</p>
+                </div>
+              </div>
+
+              {heatmap && (() => {
+                const startDate = new Date(heatmap.start);
+                const endDate = new Date(heatmap.end);
+                const activeSet = new Set(heatmap.active_dates);
+                const days: { date: string; active: boolean }[] = [];
+                const d = new Date(startDate);
+                // Align to Monday
+                while (d.getDay() !== 1) d.setDate(d.getDate() - 1);
+                while (d <= endDate || days.length % 7 !== 0) {
+                  const ds = d.toISOString().split('T')[0];
+                  days.push({ date: ds, active: activeSet.has(ds) });
+                  d.setDate(d.getDate() + 1);
+                }
+                const weeks = [];
+                for (let i = 0; i < days.length; i += 7) {
+                  weeks.push(days.slice(i, i + 7));
+                }
+                return (
+                  <div>
+                    <div className="flex gap-0.5 mb-1 pl-5">
+                      {['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'].map(d => (
+                        <span key={d} className="w-3 text-[8px] text-surface-400 text-center">{d[0]}</span>
+                      ))}
+                    </div>
+                    <div className="flex gap-0.5">
+                      {weeks.map((week, wi) => (
+                        <div key={wi} className="flex flex-col gap-0.5">
+                          {week.map(day => {
+                            const isInRange = day.date >= heatmap.start && day.date <= heatmap.end;
+                            return (
+                              <div key={day.date} title={day.date}
+                                className={`w-3 h-3 rounded-[2px] transition-colors ${
+                                  !isInRange ? 'bg-transparent' :
+                                  day.active ? 'bg-primary-500' : 'bg-surface-100 dark:bg-surface-700'
+                                }`} />
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-end gap-1.5 mt-2">
+                      <span className="text-[9px] text-surface-400">Az</span>
+                      <div className="w-2.5 h-2.5 rounded-[2px] bg-surface-100 dark:bg-surface-700" />
+                      <div className="w-2.5 h-2.5 rounded-[2px] bg-primary-300" />
+                      <div className="w-2.5 h-2.5 rounded-[2px] bg-primary-500" />
+                      <span className="text-[9px] text-surface-400">Çok</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <button onClick={() => setShowStreak(false)} className="btn-primary w-full mt-4">Tamam</button>
             </div>
           </div>
         )}

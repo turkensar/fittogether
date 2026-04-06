@@ -63,7 +63,9 @@ def my_badges(user: User = Depends(get_current_user), db: Session = Depends(get_
     return [
         BadgeResponse(
             id=b.id, name=b.name, description=b.description,
-            emoji=b.emoji, earned_at=user_badge_ids.get(b.id)
+            emoji=b.emoji, requirement=b.requirement,
+            points_required=b.points_required,
+            earned_at=user_badge_ids.get(b.id)
         )
         for b in all_badges
     ]
@@ -109,6 +111,39 @@ def get_streak(user: User = Depends(get_current_user), db: Session = Depends(get
     return {
         "my_streak": streak,
         "couple_streak": couple_streak,
+    }
+
+
+@router.get("/streak-heatmap")
+def streak_heatmap(days: int = 90, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Return list of dates with meal activity for heatmap grid."""
+    today = date.today()
+    start = today - timedelta(days=days - 1)
+    rows = db.query(func.date(Meal.created_at)).filter(
+        Meal.user_id == user.id,
+        func.date(Meal.created_at) >= start,
+        func.date(Meal.created_at) <= today,
+    ).distinct().all()
+    active_dates = [r[0].isoformat() for r in rows]
+
+    # Compute longest streak
+    date_set = set(active_dates)
+    longest = 0
+    current = 0
+    d = start
+    while d <= today:
+        if d.isoformat() in date_set:
+            current += 1
+            longest = max(longest, current)
+        else:
+            current = 0
+        d += timedelta(days=1)
+
+    return {
+        "active_dates": active_dates,
+        "start": start.isoformat(),
+        "end": today.isoformat(),
+        "longest_streak": longest,
     }
 
 

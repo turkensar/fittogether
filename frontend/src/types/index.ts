@@ -130,6 +130,8 @@ export interface Badge {
   name: string;
   description: string;
   emoji: string;
+  requirement: string;
+  points_required: number;
   earned_at: string | null;
 }
 
