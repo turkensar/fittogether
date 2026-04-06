@@ -105,6 +105,19 @@ def log_water(data: WaterLogCreate, user: User = Depends(get_current_user), db: 
     return log
 
 
+@router.get("/water/weekly")
+def weekly_water(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    today = date.today()
+    days = []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        total = db.query(func.coalesce(func.sum(WaterLog.amount_ml), 0)).filter(
+            WaterLog.user_id == user.id, WaterLog.date == d
+        ).scalar()
+        days.append({"date": d.isoformat(), "amount_ml": total})
+    return days
+
+
 @router.get("/water/today")
 def today_water(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     my_total = db.query(func.coalesce(func.sum(WaterLog.amount_ml), 0)).filter(

@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -122,6 +122,19 @@ def delete_meal(meal_id: str, user: User = Depends(get_current_user), db: Sessio
     db.delete(meal)
     db.commit()
     return {"message": "Meal deleted"}
+
+
+@router.get("/weekly-calories")
+def weekly_calories(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    today = date.today()
+    days = []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        cals = db.query(func.coalesce(func.sum(Meal.total_calories), 0)).filter(
+            Meal.user_id == user.id, func.date(Meal.created_at) == d
+        ).scalar()
+        days.append({"date": d.isoformat(), "calories": cals})
+    return days
 
 
 @router.get("/today-calories")
