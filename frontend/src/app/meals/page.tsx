@@ -43,16 +43,28 @@ const MEAL_ICON_MAP: Record<string, typeof Sunrise> = {
   breakfast: Sunrise, lunch: Sun, dinner: Moon, snack: Apple,
 };
 
-// Popular Turkish foods for quick-pick (matches seed data names)
+// Popular Turkish foods for quick-pick (cal/p/c/f per 100g, portion in grams)
 const POPULAR_FOODS = [
   { name: 'Tavuk göğsü (ızgara)', cal: 165, p: 31, c: 0, f: 3.6, portion: 150, category: 'protein' },
   { name: 'Pilav', cal: 130, p: 2.7, c: 28, f: 0.3, portion: 200, category: 'grain' },
-  { name: 'Mercimek çorbası', cal: 56, p: 3.5, c: 9, f: 0.8, portion: 300, category: 'soup' },
   { name: 'Yumurta (haşlanmış)', cal: 155, p: 13, c: 1.1, f: 11, portion: 60, category: 'protein' },
   { name: 'Yoğurt (tam yağlı)', cal: 61, p: 3.5, c: 4.7, f: 3.3, portion: 200, category: 'dairy' },
   { name: 'Ekmek (beyaz)', cal: 265, p: 9, c: 49, f: 3.2, portion: 50, category: 'grain' },
   { name: 'Köfte', cal: 250, p: 17, c: 7, f: 17, portion: 80, category: 'protein' },
   { name: 'Salata (karışık)', cal: 20, p: 1, c: 4, f: 0.2, portion: 200, category: 'vegetable' },
+  { name: 'Mercimek çorbası', cal: 60, p: 3.6, c: 8.8, f: 1.2, portion: 250, category: 'soup' },
+  { name: 'Kuru fasulye', cal: 90, p: 5, c: 14, f: 1, portion: 200, category: 'legume' },
+  { name: 'Makarna', cal: 130, p: 4.5, c: 25, f: 1, portion: 200, category: 'grain' },
+  { name: 'Beyaz peynir', cal: 260, p: 18, c: 2, f: 20, portion: 50, category: 'dairy' },
+  { name: 'Zeytin (5 adet)', cal: 160, p: 0, c: 4, f: 16, portion: 25, category: 'snack' },
+  { name: 'Domates-salatalık salatası', cal: 17.5, p: 0.5, c: 3.5, f: 0, portion: 200, category: 'vegetable' },
+  { name: 'Yayla çorbası', cal: 48, p: 2, c: 4.8, f: 2, portion: 250, category: 'soup' },
+  { name: 'Lahmacun (1 adet)', cal: 140, p: 6.7, c: 18.7, f: 4.7, portion: 150, category: 'meal' },
+  { name: 'Döner', cal: 233, p: 16.7, c: 13.3, f: 12, portion: 150, category: 'protein' },
+  { name: 'Pide (peynirli, 1 dilim)', cal: 200, p: 8.6, c: 25, f: 7.1, portion: 140, category: 'grain' },
+  { name: 'Simit', cal: 280, p: 8, c: 50, f: 5, portion: 100, category: 'grain' },
+  { name: 'Çay (şekersiz)', cal: 1, p: 0, c: 0, f: 0, portion: 200, category: 'drink' },
+  { name: 'Ayran', cal: 30, p: 1.5, c: 2, f: 1.5, portion: 200, category: 'dairy' },
 ];
 
 export default function MealsPage() {
@@ -480,9 +492,11 @@ export default function MealsPage() {
                   <div className="text-right flex items-center gap-3">
                     <div>
                       <p className="text-body font-bold">{meal.total_calories} kcal</p>
-                      <p className="text-micro text-surface-400">
-                        P:{Math.round(mealMacros.protein)} K:{Math.round(mealMacros.carbs)} Y:{Math.round(mealMacros.fat)}
-                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="flex items-center gap-0.5 text-micro"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />{Math.round(mealMacros.protein)}g</span>
+                        <span className="flex items-center gap-0.5 text-micro"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />{Math.round(mealMacros.carbs)}g</span>
+                        <span className="flex items-center gap-0.5 text-micro"><span className="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block" />{Math.round(mealMacros.fat)}g</span>
+                      </div>
                     </div>
                     <button onClick={() => deleteMeal(meal.id)} className="text-surface-300 hover:text-danger transition-colors"><Trash2 size={14} /></button>
                   </div>
@@ -490,11 +504,15 @@ export default function MealsPage() {
                 {meal.items.length > 0 && (
                   <div className="mt-2 pt-2 border-t border-surface-50 dark:border-surface-700 space-y-0.5">
                     {meal.items.map(item => (
-                      <div key={item.id} className="flex justify-between text-caption text-surface-400">
-                        <span>{item.custom_name || 'Yemek'} ({item.quantity_g}g)</span>
-                        <span className="flex items-center gap-2">
-                          <span className="text-micro">P:{item.protein || 0} K:{item.carbs || 0} Y:{item.fat || 0}</span>
-                          <span>{item.calories} kcal</span>
+                      <div key={item.id} className="flex justify-between items-center text-caption text-surface-400">
+                        <span className="truncate mr-2">{item.custom_name || 'Yemek'} <span className="text-micro">({item.quantity_g}g)</span></span>
+                        <span className="flex items-center gap-2 flex-shrink-0">
+                          <span className="flex items-center gap-1 text-micro">
+                            <span className="w-1 h-1 rounded-full bg-blue-500 inline-block" />{item.protein || 0}
+                            <span className="w-1 h-1 rounded-full bg-amber-500 inline-block ml-0.5" />{item.carbs || 0}
+                            <span className="w-1 h-1 rounded-full bg-yellow-500 inline-block ml-0.5" />{item.fat || 0}
+                          </span>
+                          <span className="font-medium">{item.calories} kcal</span>
                         </span>
                       </div>
                     ))}
