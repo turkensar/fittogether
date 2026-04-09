@@ -84,6 +84,7 @@ export default function DashboardPage() {
   const [showReport, setShowReport] = useState(false);
   const [showStreak, setShowStreak] = useState(false);
   const [heatmap, setHeatmap] = useState<{ active_dates: string[]; start: string; end: string; longest_streak: number } | null>(null);
+  const [notifExpanded, setNotifExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = () => {
@@ -144,7 +145,6 @@ export default function DashboardPage() {
   const waterOver = water.my_water_ml > waterGoal;
   const waterExcess = ((water.my_water_ml - waterGoal) / 1000).toFixed(1);
   const activeReminders = reminders.filter(r => !dismissedReminders.has(r.type));
-  const [notifExpanded, setNotifExpanded] = useState(false);
 
   return (
     <AppShell>
