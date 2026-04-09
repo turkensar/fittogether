@@ -11,7 +11,7 @@ import { DashboardSummary, Challenge, PairingStatus } from '@/types';
 import {
   Flame, Trophy, CalendarOff, Droplets, Target, ChevronDown, ChevronUp,
   AlertTriangle, Plus, Users, Bell, X, TrendingDown, TrendingUp,
-  Zap, UtensilsCrossed, BarChart3, Calendar,
+  Zap, UtensilsCrossed, BarChart3,
 } from 'lucide-react';
 
 interface Reminder {
@@ -59,6 +59,58 @@ function MacroBar({ label, value, max, color }: { label: string; value: number; 
         <div className="h-1.5 rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
       <span className="text-micro text-surface-500 w-8 text-right">{value}g</span>
+    </div>
+  );
+}
+
+function HeatmapGrid({ heatmap }: { heatmap: { active_dates: string[]; start: string; end: string; longest_streak: number } }) {
+  const startDate = new Date(heatmap.start);
+  const endDate = new Date(heatmap.end);
+  const activeSet = new Set(heatmap.active_dates);
+  const days: { date: string; active: boolean }[] = [];
+  const cursor = new Date(startDate);
+  while (cursor.getDay() !== 1) cursor.setDate(cursor.getDate() - 1);
+  const limit = 200;
+  let count = 0;
+  while ((cursor <= endDate || days.length % 7 !== 0) && count < limit) {
+    const ds = cursor.toISOString().split('T')[0];
+    days.push({ date: ds, active: activeSet.has(ds) });
+    cursor.setDate(cursor.getDate() + 1);
+    count++;
+  }
+  const weeks: typeof days[] = [];
+  for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
+
+  return (
+    <div>
+      <div className="flex gap-0.5 mb-1 pl-5">
+        {['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'].map(label => (
+          <span key={label} className="w-3 text-[8px] text-surface-400 text-center">{label[0]}</span>
+        ))}
+      </div>
+      <div className="flex gap-0.5">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="flex flex-col gap-0.5">
+            {week.map(day => {
+              const inRange = day.date >= heatmap.start && day.date <= heatmap.end;
+              return (
+                <div key={day.date} title={day.date}
+                  className={`w-3 h-3 rounded-[2px] ${
+                    !inRange ? 'bg-transparent' :
+                    day.active ? 'bg-primary-500' : 'bg-surface-100 dark:bg-surface-700'
+                  }`} />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-end gap-1.5 mt-2">
+        <span className="text-[9px] text-surface-400">Az</span>
+        <div className="w-2.5 h-2.5 rounded-[2px] bg-surface-100 dark:bg-surface-700" />
+        <div className="w-2.5 h-2.5 rounded-[2px] bg-primary-300" />
+        <div className="w-2.5 h-2.5 rounded-[2px] bg-primary-500" />
+        <span className="text-[9px] text-surface-400">Çok</span>
+      </div>
     </div>
   );
 }
@@ -508,56 +560,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {heatmap && (() => {
-                const startDate = new Date(heatmap.start);
-                const endDate = new Date(heatmap.end);
-                const activeSet = new Set(heatmap.active_dates);
-                const days: { date: string; active: boolean }[] = [];
-                const d = new Date(startDate);
-                // Align to Monday
-                while (d.getDay() !== 1) d.setDate(d.getDate() - 1);
-                while (d <= endDate || days.length % 7 !== 0) {
-                  const ds = d.toISOString().split('T')[0];
-                  days.push({ date: ds, active: activeSet.has(ds) });
-                  d.setDate(d.getDate() + 1);
-                }
-                const weeks = [];
-                for (let i = 0; i < days.length; i += 7) {
-                  weeks.push(days.slice(i, i + 7));
-                }
-                return (
-                  <div>
-                    <div className="flex gap-0.5 mb-1 pl-5">
-                      {['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'].map(d => (
-                        <span key={d} className="w-3 text-[8px] text-surface-400 text-center">{d[0]}</span>
-                      ))}
-                    </div>
-                    <div className="flex gap-0.5">
-                      {weeks.map((week, wi) => (
-                        <div key={wi} className="flex flex-col gap-0.5">
-                          {week.map(day => {
-                            const isInRange = day.date >= heatmap.start && day.date <= heatmap.end;
-                            return (
-                              <div key={day.date} title={day.date}
-                                className={`w-3 h-3 rounded-[2px] transition-colors ${
-                                  !isInRange ? 'bg-transparent' :
-                                  day.active ? 'bg-primary-500' : 'bg-surface-100 dark:bg-surface-700'
-                                }`} />
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-end gap-1.5 mt-2">
-                      <span className="text-[9px] text-surface-400">Az</span>
-                      <div className="w-2.5 h-2.5 rounded-[2px] bg-surface-100 dark:bg-surface-700" />
-                      <div className="w-2.5 h-2.5 rounded-[2px] bg-primary-300" />
-                      <div className="w-2.5 h-2.5 rounded-[2px] bg-primary-500" />
-                      <span className="text-[9px] text-surface-400">Çok</span>
-                    </div>
-                  </div>
-                );
-              })()}
+              {heatmap && <HeatmapGrid heatmap={heatmap} />}
 
               <button onClick={() => setShowStreak(false)} className="btn-primary w-full mt-4">Tamam</button>
             </div>
