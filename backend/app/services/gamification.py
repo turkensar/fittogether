@@ -6,18 +6,21 @@ from app.models.gamification import ScoreEvent, Badge, UserBadge
 from app.models.notification import Notification
 
 PUNISHMENTS = [
-    "Buy your partner a coffee tomorrow! ☕",
-    "Write a sweet motivational note for your partner 💌",
-    "Go for a 20-minute walk today 🚶",
-    "Drink 3 extra glasses of water today 💧",
-    "Send your partner 3 encouraging messages today 💬",
-    "Choose a healthy dinner for both of you tomorrow 🥗",
-    "Do 10 minutes of stretching 🧘",
-    "Prepare a healthy snack for your partner 🍎",
-    "No phone during the next meal 📵",
-    "Share a healthy recipe with your partner 📖",
-    "Give your partner a genuine compliment 😊",
-    "Plan a healthy meal together this week 🍽️",
+    "Yarın partnerine bir kahve ısmarla! ☕",
+    "Partnerine tatlı bir motivasyon notu yaz 💌",
+    "Bugün 20 dakika yürüyüşe çık 🚶",
+    "Bugün 3 bardak fazladan su iç 💧",
+    "Bugün partnerine 3 cesaretlendirici mesaj gönder 💬",
+    "Yarın ikinize de sağlıklı bir akşam yemeği seç 🥗",
+    "10 dakika esneme hareketi yap 🧘",
+    "Partnerine sağlıklı bir atıştırmalık hazırla 🍎",
+    "Sonraki öğünde telefona bakma 📵",
+    "Partnerinle sağlıklı bir tarif paylaş 📖",
+    "Partnerine içten bir iltifat et 😊",
+    "Bu hafta partnerinle birlikte sağlıklı bir öğün planla 🍽️",
+    "Bugün 15 dakika meditasyon yap 🧘‍♀️",
+    "Partnerine sarıl ve 'Başarırız' de 🤗",
+    "Yarın kahvaltıda şekersiz ilerle 🍳",
 ]
 
 

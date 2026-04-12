@@ -98,12 +98,12 @@ def break_diet(user: User = Depends(get_current_user), db: Session = Depends(get
     db.commit()
     db.refresh(event)
 
-    add_score(db, user.id, "diet_break", -points_lost, "Broke the diet")
+    add_score(db, user.id, "diet_break", -points_lost, "Diyetten çıkıldı")
 
     couple = get_active_couple(db, user.id)
     if couple:
         partner_id = get_partner_id(couple, user.id)
-        create_notification(db, partner_id, "diet_break", "Diet broken!",
-                           f"{user.name} broke the diet! Punishment: {punishment}")
+        create_notification(db, partner_id, "diet_break", "Diyet molası!",
+                           f"{user.name} diyetten çıktı! Ceza: {punishment}")
 
     return event
