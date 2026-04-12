@@ -221,7 +221,7 @@ export default function ChatPage() {
               <p>Henüz mesaj yok. Merhaba de!</p>
             </div>
           )}
-          {messages.map(msg => {
+          {messages.filter(m => m.content && m.content.trim().length > 0).map(msg => {
             const isMine = msg.sender_id === user?.id;
             return (
               <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>

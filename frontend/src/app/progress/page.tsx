@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, Scale, Trophy, Award, Users, Loader2, Lock, X, Droplets,
-  Flame, Star, ChevronDown, ChevronUp, Target,
+  Flame, Star, ChevronDown, ChevronUp, Target, Plus,
 } from 'lucide-react';
 
 interface WeeklyCalorie { date: string; calories: number; }
@@ -29,6 +29,7 @@ export default function ProgressPage() {
   const [leaderboard, setLeaderboard] = useState<any>(null);
   const [weight, setWeight] = useState('');
   const [logging, setLogging] = useState(false);
+  const weightInputRef = useRef<HTMLInputElement>(null);
   const [weeklyCalories, setWeeklyCalories] = useState<WeeklyCalorie[]>([]);
   const [weeklyWater, setWeeklyWater] = useState<WeeklyWater[]>([]);
   const [selectedBadge, setSelectedBadge] = useState<BadgeType | null>(null);
@@ -194,7 +195,14 @@ export default function ProgressPage() {
             ) : (
               <div className="text-center py-8">
                 <Scale size={28} className="mx-auto mb-2 text-surface-300" />
-                <p className="text-caption text-surface-400">Kilo kaydı eklendikçe grafiğin burada oluşacak</p>
+                <p className="text-caption text-surface-400 mb-3">Kilo kaydı eklendikçe grafiğin burada oluşacak</p>
+                <button
+                  type="button"
+                  onClick={() => weightInputRef.current?.focus()}
+                  className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-caption"
+                >
+                  <Plus size={14} /> Kilo Kaydet
+                </button>
               </div>
             )}
           </div>
@@ -295,7 +303,7 @@ export default function ProgressPage() {
         <div className="card">
           <h3 className="section-title mb-3"><Scale size={16} /> Kilo Kaydet</h3>
           <form onSubmit={logWeight} className="flex gap-2">
-            <input type="number" step="0.1" className="input-field flex-1" placeholder="Kilo (kg)"
+            <input ref={weightInputRef} type="number" step="0.1" className="input-field flex-1" placeholder="Kilo (kg)"
               value={weight} onChange={e => setWeight(e.target.value)} required />
             <button type="submit" className="btn-primary px-6" disabled={logging}>
               {logging ? <Loader2 size={16} className="animate-spin" /> : 'Kaydet'}

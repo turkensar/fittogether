@@ -7,7 +7,7 @@ import { api } from '@/lib/api';
 import AppShell from '@/components/ui/AppShell';
 import Spinner from '@/components/ui/Spinner';
 import PageError from '@/components/ui/PageError';
-import { DashboardSummary, Challenge, PairingStatus } from '@/types';
+import { DashboardSummary, Challenge, PairingStatus, Notification } from '@/types';
 import {
   Flame, Trophy, CalendarOff, Droplets, Target, ChevronDown, ChevronUp,
   AlertTriangle, Plus, Users, Bell, X, TrendingDown, TrendingUp,
@@ -137,6 +137,7 @@ export default function DashboardPage() {
   const [showStreak, setShowStreak] = useState(false);
   const [heatmap, setHeatmap] = useState<{ active_dates: string[]; start: string; end: string; longest_streak: number } | null>(null);
   const [notifExpanded, setNotifExpanded] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = () => {
@@ -149,6 +150,7 @@ export default function DashboardPage() {
     api.get<PairingStatus>('/api/pairing/status').then(setPairing).catch(() => {});
     api.get<Reminder[]>('/api/social/reminders').then(setReminders).catch(() => {});
     api.get<WeeklyReport>('/api/gamification/weekly-report').then(setWeeklyReport).catch(() => {});
+    api.get<Notification[]>('/api/social/notifications').then(setNotifications).catch(() => {});
   };
 
   useEffect(() => {
@@ -192,11 +194,16 @@ export default function DashboardPage() {
 
   const myPct = summary.my_goal > 0 ? (summary.my_calories / summary.my_goal) * 100 : 0;
   const partnerPct = summary.partner_goal > 0 ? (summary.partner_calories / summary.partner_goal) * 100 : 0;
-  const waterGoal = 2000;
+  const GLASS_ML = 250;
+  const GLASSES_GOAL = 8;
+  const waterGoal = GLASS_ML * GLASSES_GOAL;
+  const myGlasses = Math.floor(water.my_water_ml / GLASS_ML);
+  const partnerGlasses = Math.floor(water.partner_water_ml / GLASS_ML);
   const waterPct = Math.min(100, (water.my_water_ml / waterGoal) * 100);
   const waterOver = water.my_water_ml > waterGoal;
-  const waterExcess = ((water.my_water_ml - waterGoal) / 1000).toFixed(1);
+  const extraGlasses = Math.max(0, myGlasses - GLASSES_GOAL);
   const activeReminders = reminders.filter(r => !dismissedReminders.has(r.type));
+  const unreadNotifs = notifications.filter(n => !n.is_read).length;
 
   return (
     <AppShell>
@@ -208,6 +215,15 @@ export default function DashboardPage() {
             <p className="text-caption text-surface-400">Bugünü verimli geçirelim</p>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => router.push('/settings')}
+              className="relative w-9 h-9 rounded-full bg-surface-100 dark:bg-surface-700 flex items-center justify-center">
+              <Bell size={16} className="text-surface-500 dark:text-surface-300" />
+              {unreadNotifs > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-danger text-white rounded-full text-[9px] font-bold flex items-center justify-center">
+                  {unreadNotifs > 9 ? '9+' : unreadNotifs}
+                </span>
+              )}
+            </button>
             {weeklyReport && (
               <button onClick={() => setShowReport(true)}
                 className="w-9 h-9 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center">
@@ -290,6 +306,9 @@ export default function DashboardPage() {
                 <MacroBar label="P" value={Math.round(summary.my_protein || 0)} max={150} color="#3b82f6" />
                 <MacroBar label="K" value={Math.round(summary.my_carbs || 0)} max={250} color="#f59e0b" />
                 <MacroBar label="Y" value={Math.round(summary.my_fat || 0)} max={80} color="#eab308" />
+                {summary.my_calories > 0 && (summary.my_protein || 0) + (summary.my_carbs || 0) + (summary.my_fat || 0) === 0 && (
+                  <p className="text-micro text-surface-400 italic">Makro bilgisi için yemekleri popüler listeden seçin</p>
+                )}
               </div>
             </div>
           </div>
@@ -318,25 +337,60 @@ export default function DashboardPage() {
               <Droplets size={16} className={waterOver ? 'text-green-500' : 'text-info'} />
               <span className="text-subheading">Su</span>
             </div>
-            <span className="text-caption text-surface-400">{(water.my_water_ml / 1000).toFixed(1)}L / {waterGoal / 1000}L</span>
+            <span className="text-caption text-surface-400">{myGlasses} / {GLASSES_GOAL} bardak</span>
           </div>
-          <div className="w-full bg-surface-100 dark:bg-surface-700 rounded-full h-2 mb-1">
-            <div className={`h-2 rounded-full transition-all duration-500 ${waterOver ? 'bg-green-500' : 'bg-info'}`} style={{ width: `${waterPct}%` }} />
+
+          {/* Glass grid */}
+          <div className="flex gap-1 mb-2">
+            {Array.from({ length: GLASSES_GOAL }).map((_, i) => {
+              const filled = i < myGlasses;
+              return (
+                <button
+                  key={i}
+                  onClick={() => {
+                    if (filled) return;
+                    addWater(GLASS_ML);
+                  }}
+                  className={`flex-1 aspect-[3/4] rounded-md flex items-end justify-center transition-all active:scale-95 ${
+                    filled
+                      ? 'bg-gradient-to-t from-info to-sky-300 shadow-inner'
+                      : 'bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
+                  }`}
+                  title={filled ? `${(i + 1) * GLASS_ML}ml` : 'Bardak ekle'}
+                >
+                  {filled
+                    ? <Droplets size={12} className="text-white mb-1" />
+                    : <Plus size={10} className="text-surface-400 mb-1" />}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="w-full bg-surface-100 dark:bg-surface-700 rounded-full h-1.5 mb-1">
+            <div className={`h-1.5 rounded-full transition-all duration-500 ${waterOver ? 'bg-green-500' : 'bg-info'}`} style={{ width: `${waterPct}%` }} />
           </div>
           {waterOver && (
             <p className="text-micro text-green-600 dark:text-green-400 font-semibold mb-1.5">
-              +{waterExcess}L fazla — harika gidiyorsun!
+              +{extraGlasses} bardak fazla — harika gidiyorsun!
             </p>
           )}
-          <div className="flex gap-2 mt-1.5">
-            {[250, 500, 750].map(ml => (
-              <button key={ml} onClick={() => addWater(ml)} className="btn-secondary text-caption flex-1 py-1.5 px-2">
-                <Plus size={12} className="inline mr-0.5" />{ml}ml
-              </button>
-            ))}
+
+          <div className="flex gap-2 mt-2">
+            <button onClick={() => addWater(GLASS_ML)} className="btn-secondary text-caption flex-1 py-1.5 px-2">
+              <Plus size={12} className="inline mr-0.5" />1 Bardak
+            </button>
+            <button onClick={() => addWater(GLASS_ML * 2)} className="btn-secondary text-caption flex-1 py-1.5 px-2">
+              <Plus size={12} className="inline mr-0.5" />2 Bardak
+            </button>
           </div>
+
           {pairing?.paired && (
-            <p className="text-micro text-surface-400 mt-2">Partner: {(water.partner_water_ml / 1000).toFixed(1)}L</p>
+            <div className="mt-2 flex items-center gap-2">
+              <Droplets size={12} className="text-accent-500" />
+              <p className="text-caption text-surface-600 dark:text-surface-300">
+                {pairing.partner?.name}: <span className="font-semibold text-accent-500">{partnerGlasses} bardak</span>
+              </p>
+            </div>
           )}
         </div>
 
