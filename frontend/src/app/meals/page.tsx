@@ -9,7 +9,7 @@ import { Meal, Food } from '@/types';
 import {
   Plus, Search, X, Trash2, Sunrise, Sun, Moon, Apple, UtensilsCrossed, Loader2,
   Sparkles, Camera, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplet,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Star, BookmarkPlus, Bookmark, Pencil, Zap,
 } from 'lucide-react';
 
 interface MealItemForm {
@@ -27,6 +27,15 @@ interface MealItemForm {
   protein_per_100: number;
   carbs_per_100: number;
   fat_per_100: number;
+}
+
+interface MealTemplate {
+  id: string;
+  name: string;
+  meal_type: string;
+  items: any[];
+  total_calories: number;
+  created_at: string;
 }
 
 const MEAL_TYPES = [
@@ -107,13 +116,42 @@ export default function MealsPage() {
   const [selectedDate, setSelectedDate] = useState(dateToStr(new Date()));
   const [weekOffset, setWeekOffset] = useState(0);
   const [mealDates, setMealDates] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<Food[]>([]);
+  const [templates, setTemplates] = useState<MealTemplate[]>([]);
+  const [editingMealId, setEditingMealId] = useState<string | null>(null);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [pendingTemplateItems, setPendingTemplateItems] = useState<MealItemForm[] | null>(null);
 
   const weekDays = getWeekDays(weekOffset);
 
   useEffect(() => {
     if (!authLoading && !user) { router.push('/login'); return; }
-    if (user) loadMeals(selectedDate);
+    if (user) {
+      loadMeals(selectedDate);
+      loadFavoritesAndTemplates();
+    }
   }, [user, authLoading]);
+
+  const loadFavoritesAndTemplates = () => {
+    api.get<Food[]>('/api/meals/favorites').then(setFavorites).catch(() => {});
+    api.get<MealTemplate[]>('/api/meals/templates').then(setTemplates).catch(() => {});
+  };
+
+  const favoriteIds = new Set(favorites.map(f => f.id));
+
+  const toggleFavorite = async (food: Food) => {
+    const isFav = favoriteIds.has(food.id);
+    try {
+      if (isFav) {
+        await api.delete(`/api/meals/favorites/${food.id}`);
+        setFavorites(prev => prev.filter(f => f.id !== food.id));
+      } else {
+        await api.post(`/api/meals/favorites/${food.id}`);
+        setFavorites(prev => [food, ...prev]);
+      }
+    } catch {}
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -220,23 +258,91 @@ export default function MealsPage() {
     if (!title || items.length === 0) return;
     setLoading(true);
     try {
-      await api.post('/api/meals', {
+      const payload = {
         title, meal_type: mealType, description: null,
         items: items.map(i => ({
           food_id: i.food_id, custom_name: i.food_id ? null : i.custom_name,
           quantity_g: i.quantity_g, calories: i.calories,
           protein: i.protein, carbs: i.carbs, fat: i.fat,
         })),
-      });
-      setShowForm(false); setTitle(''); setItems([]); setMealPhoto(null);
+      };
+      const wasEditing = editingMealId !== null;
+      if (editingMealId) {
+        await api.put(`/api/meals/${editingMealId}`, payload);
+      } else {
+        await api.post('/api/meals', payload);
+      }
+      const savedItems = items;
+      setShowForm(false); setTitle(''); setItems([]); setMealPhoto(null); setEditingMealId(null);
       loadMeals(selectedDate);
-      // Refresh meal dates for calendar dots
+      // Offer to save as template if new meal with >=1 item
+      if (!wasEditing && savedItems.length >= 1) {
+        setPendingTemplateItems(savedItems);
+        setTemplateName(payload.title);
+        setShowSaveTemplate(true);
+      }
       const start = dateToStr(weekDays[0]);
       const end = dateToStr(weekDays[6]);
       api.get<string[]>(`/api/meals/meal-dates?start=${start}&end=${end}`)
         .then(dates => setMealDates(new Set(dates))).catch(() => {});
     } catch {}
     setLoading(false);
+  };
+
+  const saveAsTemplate = async () => {
+    if (!pendingTemplateItems || !templateName.trim()) return;
+    try {
+      await api.post('/api/meals/templates', {
+        name: templateName.trim(),
+        meal_type: mealType,
+        items: pendingTemplateItems.map(i => ({
+          food_id: i.food_id, custom_name: i.food_id ? null : i.custom_name,
+          quantity_g: i.quantity_g, calories: i.calories || 0,
+          protein: i.protein, carbs: i.carbs, fat: i.fat,
+        })),
+      });
+      loadFavoritesAndTemplates();
+    } catch {}
+    setShowSaveTemplate(false);
+    setPendingTemplateItems(null);
+    setTemplateName('');
+  };
+
+  const applyTemplate = async (tmpl: MealTemplate) => {
+    try {
+      await api.post(`/api/meals/templates/${tmpl.id}/apply`);
+      loadMeals(selectedDate);
+    } catch {}
+  };
+
+  const deleteTemplate = async (id: string) => {
+    try {
+      await api.delete(`/api/meals/templates/${id}`);
+      setTemplates(prev => prev.filter(t => t.id !== id));
+    } catch {}
+  };
+
+  const editMeal = (meal: Meal) => {
+    setEditingMealId(meal.id);
+    setTitle(meal.title);
+    setMealType(meal.meal_type);
+    setItems(meal.items.map(it => ({
+      food_id: it.food_id,
+      custom_name: it.custom_name || '',
+      quantity_g: it.quantity_g,
+      calories: it.calories,
+      protein: it.protein,
+      carbs: it.carbs,
+      fat: it.fat,
+      food_name: it.custom_name || '',
+      photo_preview: null,
+      cal_per_100: it.quantity_g > 0 ? Math.round((it.calories / it.quantity_g) * 100) : 0,
+      protein_per_100: it.quantity_g > 0 ? (it.protein / it.quantity_g) * 100 : 0,
+      carbs_per_100: it.quantity_g > 0 ? (it.carbs / it.quantity_g) * 100 : 0,
+      fat_per_100: it.quantity_g > 0 ? (it.fat / it.quantity_g) * 100 : 0,
+    })));
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const deleteMeal = async (id: string) => {
@@ -342,6 +448,32 @@ export default function MealsPage() {
           </div>
         )}
 
+        {/* Templates quick-apply */}
+        {!showForm && templates.length > 0 && (
+          <div className="card p-3">
+            <div className="flex items-center gap-1.5 text-caption font-semibold text-surface-600 dark:text-surface-300 mb-2">
+              <Zap size={14} className="text-primary-500" />
+              Şablonlarım
+              <span className="text-micro text-surface-400">({templates.length})</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {templates.map(t => (
+                <div key={t.id} className="inline-flex items-center gap-1 bg-primary-50 dark:bg-primary-900/10
+                  text-caption px-2.5 py-1.5 rounded-full border border-primary-100 dark:border-primary-900/30">
+                  <button type="button" onClick={() => applyTemplate(t)} className="flex items-center gap-1">
+                    <Plus size={12} className="text-primary-500" />
+                    <span className="font-medium">{t.name}</span>
+                    <span className="text-micro text-surface-400">{t.total_calories}</span>
+                  </button>
+                  <button type="button" onClick={() => deleteTemplate(t.id)} className="text-surface-300 hover:text-danger ml-0.5">
+                    <X size={10} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Add meal */}
         {!showForm ? (
           <button onClick={() => setShowForm(true)} className="btn-primary w-full flex items-center justify-center gap-2">
@@ -392,6 +524,31 @@ export default function MealsPage() {
               )}
             </div>
 
+            {/* Favorites quick-pick */}
+            {favorites.length > 0 && (
+              <div>
+                <div className="flex items-center gap-1.5 text-caption font-semibold text-surface-600 dark:text-surface-300 mb-2">
+                  <Star size={14} className="text-yellow-500 fill-yellow-500" />
+                  Favorilerim
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {favorites.map(f => (
+                    <div key={f.id} className="inline-flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/10
+                      text-caption px-2.5 py-1.5 rounded-full border border-yellow-100 dark:border-yellow-900/30">
+                      <button type="button" onClick={() => addFoodItem(f)} className="flex items-center gap-1">
+                        <Plus size={12} className="text-yellow-600" />
+                        <span>{f.name}</span>
+                        <span className="text-micro text-surface-400">{Math.round(f.calories_per_100g * f.default_portion_g / 100)}</span>
+                      </button>
+                      <button type="button" onClick={() => toggleFavorite(f)} className="text-surface-300 hover:text-danger ml-0.5">
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Popular foods quick-pick */}
             <div>
               <button type="button" onClick={() => setShowPopular(!showPopular)}
@@ -426,20 +583,29 @@ export default function MealsPage() {
               </div>
               {foodResults.length > 0 && (
                 <div className="mt-2 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-btn overflow-hidden max-h-48 overflow-y-auto">
-                  {foodResults.map(f => (
-                    <button key={f.id} type="button" onClick={() => addFoodItem(f)}
-                      className="w-full text-left px-4 py-2.5 hover:bg-surface-50 dark:hover:bg-surface-700 flex justify-between items-center border-b border-surface-50 dark:border-surface-700 last:border-0">
-                      <div>
-                        <span className="text-body">{f.name}</span>
-                        <div className="flex gap-2 text-micro text-surface-400 mt-0.5">
-                          <span>P: {f.protein_per_100g}g</span>
-                          <span>K: {f.carbs_per_100g}g</span>
-                          <span>Y: {f.fat_per_100g}g</span>
-                        </div>
+                  {foodResults.map(f => {
+                    const isFav = favoriteIds.has(f.id);
+                    return (
+                      <div key={f.id} className="flex items-center border-b border-surface-50 dark:border-surface-700 last:border-0">
+                        <button type="button" onClick={() => addFoodItem(f)}
+                          className="flex-1 text-left px-4 py-2.5 hover:bg-surface-50 dark:hover:bg-surface-700 flex justify-between items-center">
+                          <div>
+                            <span className="text-body">{f.name}</span>
+                            <div className="flex gap-2 text-micro text-surface-400 mt-0.5">
+                              <span>P: {f.protein_per_100g}g</span>
+                              <span>K: {f.carbs_per_100g}g</span>
+                              <span>Y: {f.fat_per_100g}g</span>
+                            </div>
+                          </div>
+                          <span className="text-caption text-surface-400 whitespace-nowrap ml-2">{f.calories_per_100g} kcal/100g</span>
+                        </button>
+                        <button type="button" onClick={() => toggleFavorite(f)}
+                          className="px-3 py-2.5 hover:bg-surface-50 dark:hover:bg-surface-700">
+                          <Star size={16} className={isFav ? 'text-yellow-500 fill-yellow-500' : 'text-surface-300'} />
+                        </button>
                       </div>
-                      <span className="text-caption text-surface-400 whitespace-nowrap ml-2">{f.calories_per_100g} kcal/100g</span>
-                    </button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -511,9 +677,9 @@ export default function MealsPage() {
             )}
 
             <div className="flex gap-2">
-              <button type="button" onClick={() => { setShowForm(false); setItems([]); setMealPhoto(null); }} className="btn-secondary flex-1">İptal</button>
+              <button type="button" onClick={() => { setShowForm(false); setItems([]); setMealPhoto(null); setEditingMealId(null); setTitle(''); }} className="btn-secondary flex-1">İptal</button>
               <button type="submit" className="btn-primary flex-1" disabled={loading || items.length === 0}>
-                {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Kaydet'}
+                {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : editingMealId ? 'Güncelle' : 'Kaydet'}
               </button>
             </div>
           </form>
@@ -582,7 +748,14 @@ export default function MealsPage() {
                         <span className="flex items-center gap-0.5 text-micro"><span className="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block" />{Math.round(mealMacros.fat)}g</span>
                       </div>
                     </div>
-                    <button onClick={() => deleteMeal(meal.id)} className="text-surface-300 hover:text-danger transition-colors"><Trash2 size={14} /></button>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => editMeal(meal)} className="text-surface-300 hover:text-primary-500 transition-colors p-1" title="Düzenle">
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={() => deleteMeal(meal.id)} className="text-surface-300 hover:text-danger transition-colors p-1" title="Sil">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {meal.items.length > 0 && (
@@ -606,6 +779,34 @@ export default function MealsPage() {
             );
           })}
         </div>
+
+        {/* Save-as-template modal */}
+        {showSaveTemplate && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4"
+            onClick={() => { setShowSaveTemplate(false); setPendingTemplateItems(null); }}>
+            <div className="bg-white dark:bg-surface-800 rounded-card w-full max-w-sm p-5 shadow-xl"
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-2 mb-2">
+                <BookmarkPlus size={18} className="text-primary-500" />
+                <h2 className="text-heading">Şablon Olarak Kaydet</h2>
+              </div>
+              <p className="text-caption text-surface-400 mb-3">
+                Bu öğünü şablon olarak kaydet, bir sonraki sefere tek tıkla ekle.
+              </p>
+              <label className="block text-caption font-semibold mb-1">Şablon Adı</label>
+              <input className="input-field mb-4" value={templateName} onChange={e => setTemplateName(e.target.value)}
+                placeholder="örn. Kahvaltım" autoFocus />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => { setShowSaveTemplate(false); setPendingTemplateItems(null); }}
+                  className="btn-secondary flex-1">Şimdi Değil</button>
+                <button type="button" onClick={saveAsTemplate} disabled={!templateName.trim()}
+                  className="btn-primary flex-1">
+                  <Bookmark size={14} className="inline mr-1" /> Kaydet
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );

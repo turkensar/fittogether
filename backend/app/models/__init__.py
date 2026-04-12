@@ -10,10 +10,12 @@ from app.models.challenge import DailyChallenge, ChallengeCompletion
 from app.models.water_log import WaterLog
 from app.models.gamification import ScoreEvent, Badge, UserBadge
 from app.models.diet_break import DietBreakEvent
+from app.models.favorite_food import FavoriteFood
+from app.models.meal_template import MealTemplate
 
 __all__ = [
     "User", "CouplePair", "Food", "Meal", "MealItem", "WeightLog",
     "CheatDay", "Message", "Notification", "DailyChallenge",
     "ChallengeCompletion", "WaterLog", "ScoreEvent", "Badge",
-    "UserBadge", "DietBreakEvent",
+    "UserBadge", "DietBreakEvent", "FavoriteFood", "MealTemplate",
 ]
