@@ -104,7 +104,6 @@ export default function MealsPage() {
   const router = useRouter();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [title, setTitle] = useState('');
   const [mealType, setMealType] = useState('lunch');
   const [items, setItems] = useState<MealItemForm[]>([]);
   const [foodSearch, setFoodSearch] = useState('');
@@ -255,11 +254,12 @@ export default function MealsPage() {
 
   const submitMeal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || items.length === 0) return;
+    if (items.length === 0) return;
     setLoading(true);
     try {
+      const autoTitle = MEAL_LABEL_MAP[mealType] || 'Öğün';
       const payload = {
-        title, meal_type: mealType, description: null,
+        title: autoTitle, meal_type: mealType, description: null,
         items: items.map(i => ({
           food_id: i.food_id, custom_name: i.food_id ? null : i.custom_name,
           quantity_g: i.quantity_g, calories: i.calories,
@@ -273,12 +273,12 @@ export default function MealsPage() {
         await api.post('/api/meals', payload);
       }
       const savedItems = items;
-      setShowForm(false); setTitle(''); setItems([]); setMealPhoto(null); setEditingMealId(null);
+      setShowForm(false); setItems([]); setMealPhoto(null); setEditingMealId(null);
       loadMeals(selectedDate);
       // Offer to save as template if new meal with >=1 item
       if (!wasEditing && savedItems.length >= 1) {
         setPendingTemplateItems(savedItems);
-        setTemplateName(payload.title);
+        setTemplateName(autoTitle);
         setShowSaveTemplate(true);
       }
       const start = dateToStr(weekDays[0]);
@@ -324,7 +324,6 @@ export default function MealsPage() {
 
   const editMeal = (meal: Meal) => {
     setEditingMealId(meal.id);
-    setTitle(meal.title);
     setMealType(meal.meal_type);
     setItems(meal.items.map(it => ({
       food_id: it.food_id,
@@ -481,12 +480,6 @@ export default function MealsPage() {
           </button>
         ) : (
           <form onSubmit={submitMeal} className="card p-4 space-y-4">
-            <div>
-              <label className="block text-caption font-semibold mb-1">Öğün Adı</label>
-              <input className="input-field" value={title} onChange={e => setTitle(e.target.value)}
-                placeholder="örn. Öğle yemeği" required />
-            </div>
-
             <div>
               <label className="block text-caption font-semibold mb-2">Öğün Türü</label>
               <div className="grid grid-cols-4 gap-2">
@@ -677,7 +670,7 @@ export default function MealsPage() {
             )}
 
             <div className="flex gap-2">
-              <button type="button" onClick={() => { setShowForm(false); setItems([]); setMealPhoto(null); setEditingMealId(null); setTitle(''); }} className="btn-secondary flex-1">İptal</button>
+              <button type="button" onClick={() => { setShowForm(false); setItems([]); setMealPhoto(null); setEditingMealId(null); }} className="btn-secondary flex-1">İptal</button>
               <button type="submit" className="btn-primary flex-1" disabled={loading || items.length === 0}>
                 {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : editingMealId ? 'Güncelle' : 'Kaydet'}
               </button>
